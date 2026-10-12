@@ -14,6 +14,14 @@ function freeze(value) {
   return value;
 }
 
+// Portable backups may have no studies or no active selection. Choose a usable
+// study before committing a restore; leave malformed payloads to API validation.
+function withActiveStudy(workspace) {
+  if (!Array.isArray(workspace.projects) || workspace.activeProjectId != null) return workspace;
+  const projects = workspace.projects.length ? workspace.projects : [project('My first study')];
+  return {...workspace, projects, activeProjectId: projects[0].id};
+}
+
 /** The application owns commands and mutable domain state. Views receive copies. */
 export function createApplication({
   createStudio, regions = [], api, browser = globalThis,
@@ -106,13 +114,13 @@ export function createApplication({
   }
   function focusPlacement() { ui.focusPlacement++; publishUI(); }
   files = createWorkspaceFiles(state, {
-    api, ...sync, active: controller.active, mutate: controller.mutate, say,
+    api, ...sync, active: controller.active, mutate: controller.mutate,
+    invalidateArtworkHistory: controller.invalidateArtworkHistory, say,
     setInteractionBlocked, getInteractionBlocked: () => ui.blocked,
     getStatus: () => ui.status, setDataStatus(value) { ui.dataStatus = value; publish(); },
     showSurface, focusPlacement, publish, regions, bodyParams,
     browser: {
       document: browser.document, Image: browser.Image, Blob: browser.Blob,
-      fetch: browser.fetch?.bind(browser), localStorage: browser.localStorage, indexedDB: browser.indexedDB,
     },
     confirm: message => browser.confirm(message), ...fileServices,
   });
@@ -265,7 +273,7 @@ export function createApplication({
         try {
           if (!await sync.flush()) throw Error('Save or resolve the conflict before restoring a backup.');
           await files.exportBackup();
-          state.workspace = await api('restore', 'POST', {backup, revision: state.workspace.revision});
+          state.workspace = await api('restore', 'POST', {backup: withActiveStudy(backup), revision: state.workspace.revision});
           state.dirty = false; controller.clearHistory(); gestures.clear(); placeMode(false);
           publish(); await sync.renderScene(); await chooseCamera('body');
           ui.dataStatus = storageMode === 'browser' ? 'Workspace restored and saved in this browser.' : 'Workspace restored and saved to your private workspace.';
@@ -282,7 +290,7 @@ export function createApplication({
         if (!browser.confirm('A backup download of your open edits has started. Keep that file, then load the current saved workspace?')) return false;
         setInteractionBlocked(true);
         try {
-          state.workspace = await api('workspace'); state.conflict = false; state.dirty = false;
+          state.workspace = await loadWorkspace(); state.conflict = false; state.dirty = false;
           controller.clearHistory(); gestures.clear(); ui.retry.hidden = true;
           publish(); await sync.renderScene(); ui.saveLabel = 'Saved copy loaded'; return true;
         } finally { setInteractionBlocked(false); }
@@ -296,14 +304,17 @@ export function createApplication({
     },
   };
 
+  async function loadWorkspace() {
+    const workspace = await api('workspace');
+    const usable = withActiveStudy(workspace);
+    if (usable === workspace) return workspace;
+    const {projects, activeProjectId} = usable;
+    const saved = await api('workspace', 'PUT', {revision: workspace.revision, projects, activeProjectId});
+    return {...workspace, ...saved, projects, activeProjectId};
+  }
   async function initialize() {
     if (!initialization) initialization = (async () => {
-      state.workspace = await api('workspace');
-      if (!state.workspace.projects.length) {
-        const first = project('My first study');
-        const saved = await api('workspace', 'PUT', {revision: state.workspace.revision, projects: [first], activeProjectId: first.id});
-        state.workspace = {...state.workspace, ...saved, projects: [first], activeProjectId: first.id};
-      }
+      state.workspace = await loadWorkspace();
       ui.saveLabel = storageMode === 'browser' ? 'Saved in this browser' : 'Saved to workspace';
       publish();
     })().catch(error => { initialization = null; throw error; });

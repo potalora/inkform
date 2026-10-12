@@ -6,7 +6,7 @@ import {referenceLines, referenceCrop} from './reference-caption.js';
 export function createWorkspaceFiles(state, services) {
   const {
     api, raster = defaultRaster, download = defaultDownload,
-    active, mutate, flush, say, setInteractionBlocked, setDataStatus,
+    active, mutate, flush, say, setInteractionBlocked, setDataStatus, invalidateArtworkHistory,
     showSurface, focusPlacement, publish, regions = [],
     confirm = message => globalThis.confirm(message),
     getInteractionBlocked = () => false,
@@ -63,6 +63,8 @@ export function createWorkspaceFiles(state, services) {
   }
 
   async function removeArtwork(id) {
+    const wasBlocked = getInteractionBlocked();
+    setInteractionBlocked(true);
     try {
       if (state.workspace.projects.some(study => study.tattoos.some(layer => layer.assetId === id))) {
         throw Error('This artwork belongs to a study. Remove its layers before deleting the artwork.');
@@ -71,10 +73,13 @@ export function createWorkspaceFiles(state, services) {
       if (!confirm('Remove this artwork from your library? Export a workspace backup first if you want to keep it.')) return;
       await api('assets/' + id, 'DELETE');
       state.workspace.assets = state.workspace.assets.filter(asset => asset.id !== id);
+      invalidateArtworkHistory(id);
       publish();
       say('Artwork removed from library.');
     } catch (error) {
       say(error.message);
+    } finally {
+      setInteractionBlocked(wasBlocked);
     }
   }
 

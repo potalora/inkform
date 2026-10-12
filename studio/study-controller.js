@@ -23,6 +23,14 @@ export function createStudyController(state, services) {
     histories.clear();
   }
 
+  function invalidateArtworkHistory(assetId) {
+    for (const history of histories.values()) {
+      if ([...history.past, ...history.future].some(study => study.tattoos.some(layer => layer.assetId === assetId))) {
+        history.clear();
+      }
+    }
+  }
+
   function mutate(change, {history = true, scene = true} = {}) {
     if (state.convertingBody) return false;
     const study = active();
@@ -222,6 +230,6 @@ export function createStudyController(state, services) {
 
   return {
     active, hist, mutate, setProject, saveAlternative, switchProject,
-    changeAnatomy, useBodyModel, clearHistory,
+    changeAnatomy, useBodyModel, clearHistory, invalidateArtworkHistory,
   };
 }

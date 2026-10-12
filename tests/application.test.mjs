@@ -23,7 +23,7 @@ function hostNode() {
     removeChild(node) { this.children = this.children.filter(child => child !== node); node.parentNode = null; },
   };
 }
-function harness({full = false, extraStudy = false, initialGate, engineGate, failBackup = false, failRestore = false, update = async () => {}, dispose = () => {}} = {}) {
+function harness({full = false, extraStudy = false, initialGate, engineGate, deleteGate, failBackup = false, failRestore = false, update = async () => {}, dispose = () => {}} = {}) {
   const study = project('Original study');
   study.notes = 'Original notes';
   const asset = {id: 'artwork', name: 'A rose', url: '/rose.png', width: 100, height: 150};
@@ -43,6 +43,11 @@ function harness({full = false, extraStudy = false, initialGate, engineGate, fai
       persisted.projects = structuredClone(payload.projects);
       persisted.activeProjectId = payload.activeProjectId;
       return {revision: ++persisted.revision};
+    }
+    if (path === 'assets/artwork' && method === 'DELETE') {
+      if (deleteGate) await deleteGate.promise;
+      persisted.assets = persisted.assets.filter(asset => asset.id !== 'artwork');
+      return {deleted: 'artwork'};
     }
     if (path === 'assets' && method === 'POST') return {id: 'uploaded-artwork', url: '/new.png', ...payload};
     if (path === 'backup') {
@@ -351,4 +356,30 @@ test('backup failures appear in the open dialog and failed restores preserve the
     assert.deepEqual(snapshot.study, before); assert.equal(snapshot.ui.blocked, false); assert.equal(h.browser.document.body.inert, false);
     assert.equal(h.downloads.length, scenario === 'restore-unavailable' ? 1 : 0, scenario);
   }
+});
+
+
+test('pending artwork deletion blocks edits and successful deletion clears history that could restore it', async t => {
+  const gate = deferred(), h = harness({deleteGate: gate});
+  t.after(() => h.app.dispose()); await h.mount();
+  assert.equal(h.app.actions.addArtwork(h.asset.id), true);
+  h.app.actions.removeLayers();
+  assert.equal(await h.app.flush(), true);
+  assert.equal(h.app.getSnapshot().ui.canUndo, true);
+  const deletion = h.app.actions.removeArtwork(h.asset.id);
+  await until(() => h.calls.some(call => call.path === 'assets/artwork'), 'pending artwork DELETE');
+  assert.equal(h.app.getSnapshot().ui.blocked, true);
+  assert.equal(h.app.actions.undo(), false);
+  assert.equal(h.app.actions.addArtwork(h.asset.id), false);
+  assert.equal(h.app.getSnapshot().study.tattoos.length, 0);
+  gate.resolve(); await deletion;
+  const after = h.app.getSnapshot();
+  assert.equal(after.workspace.assets.length, 0);
+  assert.equal(after.ui.canUndo, false);
+  assert.equal(after.ui.canRedo, false);
+  assert.equal(after.ui.blocked, false);
+  assert.equal(h.browser.document.body.inert, false);
+  h.app.actions.undo();
+  assert.equal(h.app.getSnapshot().study.tattoos.length, 0);
+  assert.equal(await h.app.flush(), true);
 });

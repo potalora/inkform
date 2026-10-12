@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createWorkspaceFiles} from '../studio/workspace-files.js';
 import {createStudyController} from '../studio/study-controller.js';
-import {project, addTattoo, MAX_TATTOOS, copy} from '../studio/model.js';
+import {project, addTattoo, deleteSelection, MAX_TATTOOS, copy} from '../studio/model.js';
 
 function deferred() {
   let resolve;
@@ -27,6 +27,7 @@ function fixture(overrides = {}, browser = {}) {
       return {id: 'asset-' + calls.length, name: payload?.name};
     },
     active, mutate: controller.mutate, async flush() { events.push('flush'); return true; },
+    invalidateArtworkHistory: id => controller.invalidateArtworkHistory(id),
     say: message => messages.push(message), setInteractionBlocked: value => events.push(['blocked', value]),
     setDataStatus: value => events.push(['data-status', value]),
     showSurface: value => events.push(['surface', value]), focusPlacement: () => events.push('focus'),
@@ -85,7 +86,7 @@ test('referenced artwork cannot be deleted from any study', async () => {
   addTattoo(other, {id: 'shared', name: 'Shared'});
   f.state.workspace.projects.push(other);
   await f.files.removeArtwork('shared');
-  assert.deepEqual(f.events, []);
+  assert.deepEqual(f.events, [['blocked', true], ['blocked', false]]);
   assert.deepEqual(f.calls, []);
   assert.match(f.messages.at(-1), /belongs to a study/);
 });
@@ -102,15 +103,97 @@ test('artwork deletion requires successful flush and confirmation before DELETE'
     if (mode === 'accepted') {
       assert.deepEqual(f.calls, [{path: 'assets/remove', method: 'DELETE', payload: undefined}]);
       assert.deepEqual(f.state.workspace.assets, [{id: 'keep', name: 'Keep'}]);
-      assert.deepEqual(f.events, ['publish']);
+      assert.deepEqual(f.events, [['blocked', true], 'publish', ['blocked', false]]);
       assert.equal(f.messages.at(-1), 'Artwork removed from library.');
     } else {
       assert.equal(f.state.workspace.assets.length, 2);
       assert.deepEqual(f.calls, []);
-      assert.deepEqual(f.events, []);
+      assert.deepEqual(f.events, [['blocked', true], ['blocked', false]]);
       if (mode === 'unsaved') assert.match(f.messages.at(-1), /Save the workspace/);
       if (mode === 'failed') assert.equal(f.messages.at(-1), 'Delete failed');
     }
+  }
+});
+
+test('successful artwork deletion invalidates affected undo and redo histories across studies only after DELETE succeeds', async () => {
+  const gate = deferred();
+  const f = fixture({api: async () => gate.promise});
+  const removed = {id: 'remove', name: 'Remove'};
+  f.state.workspace.assets = [removed];
+  f.controller.mutate(study => addTattoo(study, removed));
+  f.controller.mutate(deleteSelection);
+  const undoHistory = f.controller.hist();
+
+  const redoStudy = project('Redo');
+  f.state.workspace.projects.push(redoStudy);
+  f.state.workspace.activeProjectId = redoStudy.id;
+  f.controller.mutate(study => addTattoo(study, removed));
+  const redoHistory = f.controller.hist();
+  f.controller.setProject(redoHistory.undo(redoStudy));
+
+  const unrelated = project('Unrelated');
+  f.state.workspace.projects.push(unrelated);
+  f.state.workspace.activeProjectId = unrelated.id;
+  f.controller.mutate(study => { study.notes = 'First'; });
+  f.controller.mutate(study => { study.notes = 'Second'; });
+  const unrelatedHistory = f.controller.hist();
+  f.controller.setProject(unrelatedHistory.undo(unrelated));
+  const before = copy({past: unrelatedHistory.past, future: unrelatedHistory.future});
+
+  const deleting = f.files.removeArtwork(removed.id);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.ok(undoHistory.past.some(study => study.tattoos.length));
+  assert.ok(redoHistory.future.some(study => study.tattoos.length));
+  assert.equal(f.state.workspace.assets.length, 1);
+  gate.resolve();
+  await deleting;
+
+  assert.deepEqual([undoHistory.past, undoHistory.future, redoHistory.past, redoHistory.future], [[], [], [], []]);
+  assert.deepEqual({past: unrelatedHistory.past, future: unrelatedHistory.future}, before);
+  assert.equal(f.state.workspace.assets.length, 0);
+  assert.equal(undoHistory.undo(f.study), null);
+  assert.equal(redoHistory.redo(redoStudy), null);
+});
+
+test('unsaved, cancelled, and failed artwork deletion retain undo and redo history', async () => {
+  for (const [mode, wasBlocked] of ['unsaved', 'cancelled', 'failed'].flatMap(mode => [false, true].map(wasBlocked => [mode, wasBlocked]))) {
+    const f = fixture({
+      getInteractionBlocked: () => wasBlocked,
+      flush: async () => mode !== 'unsaved',
+      confirm: () => mode !== 'cancelled',
+      api: async () => { throw Error('Delete failed'); },
+    });
+    const removed = {id: 'remove', name: 'Remove'};
+    f.state.workspace.assets = [removed];
+    f.controller.mutate(study => addTattoo(study, removed));
+    f.controller.mutate(deleteSelection);
+    f.controller.mutate(study => { study.notes = 'Later'; });
+    const history = f.controller.hist();
+    f.controller.setProject(history.undo(f.study));
+    const before = copy({past: history.past, future: history.future});
+    await f.files.removeArtwork(removed.id);
+    assert.deepEqual({past: history.past, future: history.future}, before);
+    assert.deepEqual(f.state.workspace.assets, [removed]);
+    assert.deepEqual(f.events.at(-1), ['blocked', wasBlocked]);
+  }
+});
+
+test('artwork deletion blocks overlapping edits during flush and DELETE, then restores prior interaction state', async () => {
+  for (const wasBlocked of [false, true]) {
+    const saving = deferred(), deleting = deferred();
+    const f = fixture({
+      getInteractionBlocked: () => wasBlocked,
+      flush: () => saving.promise,
+      api: () => deleting.promise,
+    });
+    const removal = f.files.removeArtwork('remove');
+    assert.deepEqual(f.events, [['blocked', true]]);
+    saving.resolve(true);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.deepEqual(f.events, [['blocked', true], 'confirm']);
+    deleting.resolve();
+    await removal;
+    assert.deepEqual(f.events.at(-1), ['blocked', wasBlocked]);
   }
 });
 
