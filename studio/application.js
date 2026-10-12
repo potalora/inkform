@@ -290,7 +290,7 @@ export function createApplication({
         if (!browser.confirm('A backup download of your open edits has started. Keep that file, then load the current saved workspace?')) return false;
         setInteractionBlocked(true);
         try {
-          state.workspace = await loadWorkspace(); state.conflict = false; state.dirty = false;
+          state.workspace = await normalizeSavedWorkspace(await api('workspace')); state.conflict = false; state.dirty = false;
           controller.clearHistory(); gestures.clear(); ui.retry.hidden = true;
           publish(); await sync.renderScene(); ui.saveLabel = 'Saved copy loaded'; return true;
         } finally { setInteractionBlocked(false); }
@@ -304,8 +304,7 @@ export function createApplication({
     },
   };
 
-  async function loadWorkspace() {
-    const workspace = await api('workspace');
+  async function normalizeSavedWorkspace(workspace) {
     const usable = withActiveStudy(workspace);
     if (usable === workspace) return workspace;
     const {projects, activeProjectId} = usable;
@@ -314,7 +313,9 @@ export function createApplication({
   }
   async function initialize() {
     if (!initialization) initialization = (async () => {
-      state.workspace = await loadWorkspace();
+      // Keep the readable snapshot exportable if the normalization write fails.
+      state.workspace = await api('workspace');
+      state.workspace = await normalizeSavedWorkspace(state.workspace);
       ui.saveLabel = storageMode === 'browser' ? 'Saved in this browser' : 'Saved to workspace';
       publish();
     })().catch(error => { initialization = null; throw error; });

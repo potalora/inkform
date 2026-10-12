@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createApplication} from '../studio/application.js';
 import {project} from '../studio/model.js';
-import {IDBFactory} from 'fake-indexeddb';
+import {IDBFactory, IDBObjectStore} from 'fake-indexeddb';
 import {createLocalApi} from '../studio/local-api.js';
 
 function setup({empty = false} = {}) {
@@ -169,6 +169,36 @@ test('startup selects and saves the first existing study when the saved selectio
   assert.equal(h.app.getSnapshot().ui.ready, true);
   assert.equal(h.app.getSnapshot().study.id, study.id);
   assert.equal((await h.localApi('workspace')).activeProjectId, study.id);
+});
+
+test('failed startup normalization keeps the readable workspace available for backup while blocking edits', async t => {
+  t.mock.method(console, 'error', () => {});
+  const h = localApplication(); t.after(() => h.dispose());
+  await h.localApi('assets', 'POST', {
+    name: 'Preserved artwork', width: 1, height: 1,
+    dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=',
+  });
+  const study = project('Preserved study');
+  study.notes = 'Keep these notes even when storage is full';
+  await h.localApi('workspace', 'PUT', {revision: 0, projects: [study], activeProjectId: null});
+  const before = await h.localApi('backup');
+  const put = IDBObjectStore.prototype.put;
+  t.mock.method(IDBObjectStore.prototype, 'put', function (...args) {
+    if (this.name === 'workspace') throw new DOMException('Full device', 'QuotaExceededError');
+    return put.apply(this, args);
+  });
+  await h.mount();
+  const snapshot = h.app.getSnapshot();
+  assert.equal(snapshot.ui.ready, false);
+  assert.equal(snapshot.ui.dataBlocked, false);
+  assert.match(snapshot.ui.error, /storage is full/i);
+  assert.deepEqual(snapshot.workspace.projects, before.projects);
+  assert.equal(snapshot.workspace.activeProjectId, null);
+  h.app.actions.setNotes('Must not change saved notes');
+  await h.app.actions.exportBackup();
+  assert.equal(h.downloads.length, 1);
+  assert.deepEqual(JSON.parse(await h.downloads[0].blob.text()), before);
+  assert.deepEqual(await h.localApi('backup'), before);
 });
 
 test('deleting unused artwork through the application keeps Undo, saving, and backup export valid', async t => {
