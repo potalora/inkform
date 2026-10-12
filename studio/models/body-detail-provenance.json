@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "date": "2026-10-10",
+  "geometryInvariant": "Positions, triangle order, UVs, morph grids, weights, coverage masks and region anchors unchanged. Blender Studio normals are corrected to smooth across duplicate UV seam vertices.",
+  "bodies": {
+    "human.json": {
+      "retainedGeometrySHA256": {
+        "positions": "95f4ad770b94337ef0793e81e9afd9e13a6ca7d5b91f01fb8284f49df05371dc",
+        "normals": "8107215cc0122b224fb8e00c516589207e90aa8a311623e4eaaf8de8338fc584",
+        "uvs": "f7ebe2fc0bf8a97782c6bacb05af1ad0936e32733c63e5dbe58ffe205ad1662d",
+        "indices": "62b81dfb7938f17d4217ddbc604a0a1a9d2ca62db093e0ac00223d7835435b2d",
+        "armMask": "cb88de007b1bf9e2f7080ffb065e1e16a014dc9056ab391ba3c1e7c82d9d2838",
+        "clothingMask": "9132c4032b9aec248d7c085b6b90ba909445e02162626250e76612d98cb30858",
+        "anatomicalWeights": "f07225acb7acbd878813e7416002ec819910b9b9607f3a247870735f780b125d"
+      },
+      "faceCount": 107024,
+      "faceIndexAndBarycentricCompatible": true
+    },
+    "female.json": {
+      "retainedGeometrySHA256": {
+        "positions": "432afb484718aabff763cb2f0e12958efcb09b32d6a4d285f5e21e6e90a2d0bb",
+        "normals": "78bca615b4a7ccf8e699b35a340566264bb44042726cab2168c88b82be61e816",
+        "uvs": "f7ebe2fc0bf8a97782c6bacb05af1ad0936e32733c63e5dbe58ffe205ad1662d",
+        "indices": "62b81dfb7938f17d4217ddbc604a0a1a9d2ca62db093e0ac00223d7835435b2d",
+        "armMask": "cb88de007b1bf9e2f7080ffb065e1e16a014dc9056ab391ba3c1e7c82d9d2838",
+        "clothingMask": "a9f6101c1072a50d0b2475b6f916a2947bcb9c9bdf59736e8233c759663be6c9",
+        "anatomicalWeights": "f07225acb7acbd878813e7416002ec819910b9b9607f3a247870735f780b125d"
+      },
+      "faceCount": 107024,
+      "faceIndexAndBarycentricCompatible": true
+    },
+    "atelier/male.json": {
+      "retainedGeometrySHA256": {
+        "positions": "ae2dce559e8bc318fab820700e36446f9deb75d9afb678075625fabc770cb853",
+        "normals": "6c165d25d1adc4ca903af6ce762f160a98fdd4f4c9589b0ce7ef4b9945ad3664",
+        "indices": "8e2fefd19eaf3bdbe0e2e5f14aff4bd9262cf0aa1145b1a8b55a9fc83e3d3878",
+        "uvs": "e4505dbe5c5e1be580158627180c9310576b57b3c5a8e0fe486ba19b15909894",
+        "anatomicalWeights": "03d916ec6098a3a7dd8b2d31fa887e75204fd9a428f35f0e637407b633e5636c",
+        "clothingMask": "794be839264f1bc9696dad2e87bcc283a24874d2bcbaf303c2af2e543af408c5"
+      },
+      "faceCount": 52544,
+      "faceIndexAndBarycentricCompatible": true
+    },
+    "atelier/female.json": {
+      "retainedGeometrySHA256": {
+        "positions": "7586da5d2cdea7eb45f7b3b7bad7df9a40a0f65798d34ad558c03e46b4222309",
+        "normals": "cab24eb3079efa95aedc15e79bd558d9bd2866edfc1e1c6c91218dc475421061",
+        "indices": "8e2fefd19eaf3bdbe0e2e5f14aff4bd9262cf0aa1145b1a8b55a9fc83e3d3878",
+        "uvs": "e4505dbe5c5e1be580158627180c9310576b57b3c5a8e0fe486ba19b15909894",
+        "anatomicalWeights": "03d916ec6098a3a7dd8b2d31fa887e75204fd9a428f35f0e637407b633e5636c",
+        "clothingMask": "794be839264f1bc9696dad2e87bcc283a24874d2bcbaf303c2af2e543af408c5"
+      },
+      "faceCount": 52544,
+      "faceIndexAndBarycentricCompatible": true
+    },
+    "blender-studio/male.json": {
+      "retainedGeometrySHA256": {
+        "positions": "c7d28afe8b144090f16823942538c3cc5cf6e7f0a02354c0c24209930d64170f",
+        "indices": "4da629f95c0a803f89562056e9c248450143256efc2be69a72aa95ea978a3989",
+        "uvs": "8cead015a055b8c241332926e5d977e2d72466bd431ee6122a0fb37ff9dd60a4",
+        "anatomicalWeights": "dcb755a65ba6e03d1cb64219524b41343f7562cef9756b4b36b655aea0bc04e5",
+        "clothingMask": "d35b847837d9aeea313e3a1088013f577e0ccaa8b502686129087ecc827f7679"
+      },
+      "faceCount": 84680,
+      "faceIndexAndBarycentricCompatible": true,
+      "normalCorrection": "Area-weighted normals welded by original coincident surface position before UV seam splitting"
+    },
+    "blender-studio/female.json": {
+      "retainedGeometrySHA256": {
+        "positions": "6ddfd9594164d988e4f8ee84ef08c50b8a39473ea85b3eaa8baa5b02a29b484a",
+        "indices": "10153704089ef4aa5a48762df16d0268872ca99112a204bfdb1db4a982c4f382",
+        "uvs": "a6a429eb2ff74f8a5bc8c0ca75a34f9b857900dfe38e1be70de5e8aaf2b6f672",
+        "anatomicalWeights": "ce8c5ce907d9a01b7fc480a07466142b07864d984c3fd22bb972b562b72570c2",
+        "clothingMask": "7c34a6770254d32c82d16e12f6ac961da71fdab8da2189202d31e3aee5df1b41"
+      },
+      "faceCount": 84680,
+      "faceIndexAndBarycentricCompatible": true,
+      "normalCorrection": "Area-weighted normals welded by original coincident surface position before UV seam splitting"
+    }
+  },
+  "limitations": [
+    "Texture/normal detail cannot improve geometric silhouette.",
+    "No female MakeHuman source normal is available: existing authored diffuse is retained.",
+    "Blender detail is authored sculpt shading, not a scan; Atelier uses independently sampled original source EXRs."
+  ],
+  "textureBudget": {
+    "rgbaBytesPerTexelWithMipmaps": 5.333333333333333,
+    "atelierDesktopSharedMiB": 106.667,
+    "atelierMobileSharedMiB": 42.667,
+    "blenderDesktopPerAnatomyMiB": 85.334,
+    "blenderMobilePerAnatomyMiB": 21.334,
+    "allThreeFamiliesBothAnatomiesDesktopBodyMapsMiB": 341.334,
+    "allThreeFamiliesBothAnatomiesMobileBodyMapsMiB": 149.334,
+    "exclusions": "Accessory maps, renderer buffers and geometry; MakeHuman male source normal is included. Shared Atelier maps are counted once across anatomies.",
+    "lifecycle": "Renderer fences submitted work then calls library.trim(active.id); inactive body meshes/maps and surface-worker/fallback registrations are released."
+  },
+  "geometryHashEncoding": "Flattened Float64LE attributes"
+}

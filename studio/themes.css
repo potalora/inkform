@@ -1,0 +1,208 @@
+/* Current glass studio tokens and preserved visual experiments. */
+@font-face { font-family: 'IBM Plex Sans'; src: url('./fonts/IBMPlexSans-variable.ttf') format('truetype'); font-style: normal; font-weight: 100 700; font-display: swap; }
+@font-face { font-family: 'Instrument Serif'; src: url('./fonts/InstrumentSerif-Regular.ttf') format('truetype'); font-style: normal; font-weight: 400; font-display: swap; }
+@font-face { font-family: Nunito; src: url('./fonts/Nunito-variable.ttf') format('truetype'); font-style: normal; font-weight: 200 1000; font-display: swap; }
+@font-face { font-family: Fraunces; src: url('./fonts/Fraunces-variable.ttf') format('truetype'); font-style: normal; font-weight: 100 900; font-display: swap; }
+@font-face { font-family: Gloock; src: url('./fonts/Gloock-Regular.ttf') format('truetype'); font-style: normal; font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Bodoni Moda'; src: url('./fonts/BodoniModa-variable.ttf') format('truetype'); font-style: normal; font-weight: 400 900; font-display: swap; }
+@font-face { font-family: Kalnia; src: url('./fonts/Kalnia-variable.ttf') format('truetype'); font-style: normal; font-weight: 100 700; font-display: swap; }
+
+:root[data-theme=glass] {
+  color-scheme: light;
+  --bg: #d8dfdb; --panel: #f0f3ec; --text: #25372f; --muted: #405248;
+  --line: #30483b29; --edge: #ffffffb3; --accent: #52766c; --danger: #78332b;
+  --paper: #f9faf6; --ink: #25372f; --sans: 'IBM Plex Sans', Helvetica, Arial, sans-serif;
+  --radius: 12px; --control-radius: 6px;
+  --surface-fill: #f5f7f0c7; --surface-fallback: #f0f3ecfa;
+  --surface-blur: 12px;
+  --surface-shadow: inset 0 1px 0 #ffffffd9, 0 8px 28px #172d2114, 0 1px 2px #172d210d;
+  --menu-fill: #f2f5edf5; --camera-fill: #f5f7f0d6; --history-fill: #f8faf51f;
+  --field-fill: #ffffff30; --hover-fill: #52766c0d; --active-fill: #52766c1a;
+  --selection-fill: #52766c10; --action-fill: #405e53; --action-ink: #f8faf5;
+  --action-hover: #314e43; --range-track: #3c5b4c38; --range-thumb: #52766c;
+  --paper-radius: 6px; --camera-radius: 10px;
+  --display-serif: 'Bodoni Moda', Georgia, serif; --display-weight: 500;
+  --display-size: 28px; --wordmark-size: 34px; --display-axes: normal;
+}
+
+:root[data-theme=precision] {
+  color-scheme: dark;
+  --bg: #242424; --panel: #1b1b1b; --text: #f5f5f5; --muted: #bebebe;
+  --line: #ffffff26; --edge: #ffffff50; --accent: #ffffff; --danger: #ffffff;
+  --paper: #f4f4f4; --ink: #171717; --sans: 'IBM Plex Sans', Helvetica, Arial, sans-serif;
+  --radius: 3px; --control-radius: 2px;
+  --field-fill: #303030; --hover-fill: #ffffff12; --active-fill: #ffffff20;
+  --selection-fill: #ffffff14; --action-fill: #f4f4f4; --action-ink: #171717;
+  --action-hover: #ffffff; --range-track: #777777; --range-thumb: #ffffff;
+  --paper-radius: 2px; --camera-radius: 4px; --camera-fill: #242424f5;
+}
+:root[data-theme=gallery] {
+  color-scheme: light;
+  --bg: #fafafa; --panel: #ffffff; --text: #202020; --muted: #626262;
+  --line: #00000020; --edge: #00000050; --accent: #202020; --danger: #202020;
+  --paper: #ffffff; --ink: #171717; --sans: 'IBM Plex Sans', Helvetica, Arial, sans-serif;
+  --radius: 4px; --control-radius: 3px;
+  --field-fill: #f0f0f0; --hover-fill: #00000008; --active-fill: #00000014;
+  --selection-fill: #ebebeb; --action-fill: #222222; --action-ink: #ffffff;
+  --action-hover: #414141; --range-track: #aaaaaa; --range-thumb: #202020;
+  --paper-radius: 0px; --camera-radius: 5px; --camera-fill: #fffffff5;
+  --display-serif: 'Instrument Serif', Georgia, serif; --display-weight: 400;
+  --display-size: 38px; --wordmark-size: 34px; --display-axes: normal;
+}
+:root[data-theme=soft] {
+  color-scheme: light;
+  --bg: #d5d5d5; --panel: #e5e5e5; --text: #252525; --muted: #555555;
+  --line: #00000026; --edge: #00000050; --accent: #252525; --danger: #252525;
+  --paper: #ffffff; --ink: #171717; --sans: Nunito, Helvetica, Arial, sans-serif;
+  --radius: 18px; --control-radius: 12px;
+  --field-fill: #efefef; --hover-fill: #ffffff60; --active-fill: #ffffffa0;
+  --selection-fill: #f7f7f7; --action-fill: #353535; --action-ink: #ffffff;
+  --action-hover: #4b4b4b; --range-track: #909090; --range-thumb: #353535;
+  --paper-radius: 14px; --camera-radius: 30px; --camera-fill: #e5e5e5f5;
+}
+
+/* Shared roles keep light themes coherent across less-visible controls. */
+html[data-theme] :is(button:not(:disabled), summary):hover { background-color: var(--hover-fill); }
+html[data-theme] button:not(:disabled):active { background-color: var(--active-fill); }
+html[data-theme] :is(input[type=text], input[type=search], input:not([type]), select, textarea) { background: var(--field-fill); }
+html[data-theme] #project-select { background: transparent; }
+html[data-theme] :is(.primary, .save-image) { background: var(--action-fill); color: var(--action-ink); border-color: transparent; }
+html[data-theme] .camera-bar button[aria-pressed=true] { background: var(--action-fill); color: var(--action-ink); border-color: transparent; }
+html[data-theme] :is(.primary, .save-image):not(:disabled):hover { background: var(--action-hover); color: var(--action-ink); }
+html[data-theme] #browse-art:not(:disabled):hover { color: var(--action-ink); }
+html[data-theme] .secondary { background: var(--field-fill); }
+html[data-theme] .secondary:not(:disabled):hover { background: var(--hover-fill); }
+html[data-theme] :is(.layer.selected, .placement-action[aria-pressed=true], .upload.dragging, .library-import[open]) { background: var(--selection-fill); }
+html[data-theme] .camera-bar { --surface-fill: var(--camera-fill,var(--menu-fill)); border-radius: var(--camera-radius); }
+html[data-theme] .art-paper { border-radius: var(--paper-radius); box-shadow: inset 0 0 0 1px #00000010; }
+html[data-theme] .art-card .preview-art { border-radius: var(--paper-radius); }
+html[data-theme] .art-card .preview-art:not(:disabled):hover { background: transparent; }
+html[data-theme] .art-card .add-art:not(:disabled):hover { background: transparent; }
+html[data-theme] .art-card .add-art span { border-color: var(--edge); }
+html[data-theme] .art-card .add-art:not(:disabled):hover span { background: var(--action-fill); color: var(--action-ink); border-color: var(--action-fill); }
+html[data-theme] .history-bar { background: var(--history-fill,var(--panel)); }
+html[data-theme] .preview-paper { border-radius: var(--paper-radius); }
+html[data-theme] input[type=range]::-webkit-slider-runnable-track { background: var(--range-track); }
+html[data-theme] input[type=range]::-webkit-slider-thumb { background: var(--range-thumb); }
+html[data-theme] input[type=range]::-moz-range-track { background: var(--range-track); }
+html[data-theme] input[type=range]::-moz-range-thumb { background: var(--range-thumb); }
+html[data-theme] .controls-scroll { scrollbar-color: var(--edge) transparent; }
+html[data-theme] .controls-scroll::-webkit-scrollbar-thumb { background: var(--edge); }
+html[data-theme] :is(.project-actions, .layer-menu-content, .preview-menu-content) { --surface-fill: var(--menu-fill,var(--panel)); border-radius: var(--control-radius); }
+
+/* Current studio: readable frost, book-like headings, a cool mineral accent. */
+html[data-theme=glass] :is(input[type=text],input[type=search],input:not([type]),select,textarea) { border-color: #30483b55; }
+html[data-theme=glass] :is(button,input,select):disabled { opacity: .55; }
+html[data-theme=glass] :is(.brand,.composition-heading h2,.library-intro h2,.section-heading > h2,[data-panel-content=body] > h2,.panel-intro h2,dialog h2,.loading h2) {
+  font-family: var(--display-serif); font-weight: 500; font-variation-settings: normal;
+  font-optical-sizing: auto; letter-spacing: -.035em; line-height: 1.16;
+}
+html[data-theme=glass] .brand { font-size: var(--wordmark-size); }
+html[data-theme=glass] :is(.composition-heading h2,.library-intro h2,.section-heading > h2,[data-panel-content=body] > h2,dialog h2) { font-size: var(--display-size); }
+html[data-theme=glass] .panel-intro h2 { font-size: 23px; line-height: 1.2; }
+html[data-theme=glass] .loading h2 { font-size: 26px; }
+html[data-theme=glass] .controls-scroll { padding: 22px 18px 24px; }
+html[data-theme=glass] .library-intro { margin-bottom: 20px; }
+html[data-theme=glass] .surface-tabs { gap: 8px; padding-inline: 14px; }
+html[data-theme=glass] .surface-tabs button { font-weight: 400; }
+html[data-theme=glass] .surface-tabs button[aria-pressed=true] { font-weight: 600; }
+html[data-theme=glass] :is(.primary,.save-image) { border: 1px solid var(--action-fill); font-weight: 500; }
+html[data-theme=glass] .secondary { background: transparent; border-color: #30483b55; font-weight: 400; }
+html[data-theme=glass] .secondary:not(:disabled):hover { background: var(--hover-fill); border-color: #30483b99; }
+html[data-theme=glass] #help-open { background: transparent; border: 1px solid transparent; font-weight: 400; }
+html[data-theme=glass] .field { gap: 8px; margin-block: 16px; }
+html[data-theme=glass] .range-control { row-gap: 4px; margin-block: 14px; }
+html[data-theme=glass] :where(button,a,input,select,textarea,summary):focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: 0 0 0 4px #f5f7f0b3;
+}
+html[data-theme=glass] .camera-bar button[aria-pressed=true] { background: var(--action-fill); color: var(--action-ink); font-weight: 500; }
+html[data-theme=glass] :is(dialog,.ui-dialog,.loading) { --surface-fill: var(--menu-fill); }
+html[data-theme=glass] :is(.interaction-hint,footer) { color: var(--text); text-shadow: 0 1px 3px #f5f7f0dd; }
+html[data-theme=glass] .stage { background: var(--bg); }
+html[data-theme=glass]:has(#lighting option:checked:not([value=studio])) { --surface-fill: #f5f7f0e0; --camera-fill: #f5f7f0e8; }
+html[data-theme=glass]:has(#lighting option:checked:not([value=studio])) :is(.interaction-hint,footer) { color: #f5f7f0; text-shadow: 0 1px 3px #172d21; }
+html[data-theme=glass] .layer { border-radius: 6px; }
+html[data-theme=glass] .layer-title { font-size: 14px; }
+html[data-theme=glass] .layer small { font-size: 12px; }
+html[data-theme=glass] .layer img { border-radius: 4px; }
+html[data-theme=glass] .artwork { gap: 20px 12px; }
+html[data-theme=glass] .art-card strong { font-weight: 400; }
+html[data-theme=glass] input[type=range]::-webkit-slider-thumb { border-color: #f5f7f0; }
+html[data-theme=glass] input[type=range]::-moz-range-thumb { border-color: #f5f7f0; }
+
+/* Precision: lower contrast in type weight, sharper edges, tighter rhythm. */
+html[data-theme=precision] body { font-size: 13px; }
+html[data-theme=precision] .brand { font-size: 25px; font-weight: 500; letter-spacing: -.8px; }
+html[data-theme=precision] .controls-scroll { padding: 17px 14px 24px 16px; }
+html[data-theme=precision] :is(.library-intro h2, .section-heading > h2, [data-panel-content=body] > h2) { font-size: 24px; font-weight: 500; letter-spacing: -.4px; line-height: 1.2; }
+html[data-theme=precision] .library-intro { margin-bottom: 14px; }
+html[data-theme=precision] .surface-tabs button { font-weight: 400; }
+html[data-theme=precision] .surface-tabs button[aria-pressed=true] { font-weight: 600; }
+html[data-theme=precision] .artwork { gap: 8px; }
+html[data-theme=precision] .art-card strong { font-weight: 400; margin-top: 7px; }
+html[data-theme=precision] .art-card .add-art span { border: 0; border-radius: 2px; }
+html[data-theme=precision] .panel-intro h2 { font-size: 19px; font-weight: 500; letter-spacing: -.2px; }
+html[data-theme=precision] .preview-heading h2 { font-size: 25px; font-weight: 500; letter-spacing: -.3px; }
+html[data-theme=precision] :is(.save-image, .primary, .library-import > summary) { font-weight: 500; }
+
+/* Gallery: artwork on a quiet light surface, with expressive serif titles. */
+html[data-theme=gallery] .brand { font-family: var(--display-serif); font-size: var(--wordmark-size); font-weight: var(--display-weight); letter-spacing: -.015em; font-variation-settings: var(--display-axes); font-optical-sizing: auto; }
+html[data-theme=gallery] .controls-scroll { padding: 22px 14px 28px 20px; }
+html[data-theme=gallery] :is(.library-intro h2, .section-heading > h2, [data-panel-content=body] > h2) { font-family: var(--display-serif); font-size: var(--display-size); font-weight: var(--display-weight); letter-spacing: -.01em; line-height: 1.1; font-variation-settings: var(--display-axes); font-optical-sizing: auto; }
+html[data-theme=gallery] .library-intro { margin-bottom: 23px; }
+html[data-theme=gallery] :is(.panel-intro h2, dialog h2) { font-family: var(--display-serif); font-size: 27px; font-weight: var(--display-weight); letter-spacing: -.01em; font-variation-settings: var(--display-axes); font-optical-sizing: auto; }
+html[data-theme=gallery] .preview-heading h2 { font-size: var(--display-size); }
+html[data-theme=gallery] .artwork { gap: 18px 14px; }
+html[data-theme=gallery] .art-card strong { font-weight: 400; }
+html[data-theme=gallery] .art-paper img { inset: 17px; width: calc(100% - 34px); height: calc(100% - 34px); }
+html[data-theme=gallery] :is(.surface-tabs button, .save-image, .primary, .library-import > summary) { font-weight: 400; }
+html[data-theme=gallery] .surface-tabs button[aria-pressed=true] { font-weight: 600; }
+
+/* Each serif is optically balanced for the same pane, not mechanically equal-sized. */
+:root[data-theme=gallery][data-serif=fraunces] { --display-serif: Fraunces, Georgia, serif; --display-weight: 550; --display-size: 34px; --wordmark-size: 29px; --display-axes: 'SOFT' 20, 'WONK' 1, 'opsz' 36; }
+:root[data-theme=gallery][data-serif=gloock] { --display-serif: Gloock, Georgia, serif; --display-weight: 400; --display-size: 34px; --wordmark-size: 30px; }
+:root[data-theme=gallery][data-serif=bodoni] { --display-serif: 'Bodoni Moda', Georgia, serif; --display-weight: 500; --display-size: 36px; --wordmark-size: 32px; }
+:root[data-theme=gallery][data-serif=kalnia] { --display-serif: Kalnia, Georgia, serif; --display-weight: 500; --display-size: 32px; --wordmark-size: 29px; }
+
+/* Soft studio: rounded silhouettes, lighter grays, gentler humanist type. */
+html[data-theme=soft] .brand { font-size: 28px; font-weight: 750; letter-spacing: -.6px; }
+html[data-theme=soft] .controls-scroll { padding: 23px 14px 30px 20px; }
+html[data-theme=soft] :is(.library-intro h2, .section-heading > h2, [data-panel-content=body] > h2) { font-size: 29px; font-weight: 750; letter-spacing: -.5px; line-height: 1.15; }
+html[data-theme=soft] .panel-intro h2 { font-size: 23px; font-weight: 700; letter-spacing: -.3px; }
+html[data-theme=soft] .preview-heading h2 { font-size: 27px; font-weight: 700; letter-spacing: -.4px; }
+html[data-theme=soft] .surface-tabs { padding: 6px 10px; gap: 4px; }
+html[data-theme=soft] .surface-tabs button { min-height: 44px; padding: 10px 0; border: 0; border-radius: 10px; font-weight: 600; }
+html[data-theme=soft] .surface-tabs button[aria-pressed=true] { background: #ffffff; box-shadow: 0 1px 2px #0000000c; font-weight: 800; }
+html[data-theme=soft] .artwork { gap: 20px 12px; }
+html[data-theme=soft] .art-card strong { font-size: 13px; font-weight: 600; }
+html[data-theme=soft] .art-card .add-art span { width: 28px; height: 28px; background: #ffffff; border-color: transparent; }
+html[data-theme=soft] .camera-bar button { border-radius: 22px; }
+html[data-theme=soft] .layer { border-radius: 10px; }
+html[data-theme=soft] :is(.layer img, .skin-swatches button span) { border-radius: 6px; }
+html[data-theme=soft] .preview-paper { background: #ffffff; }
+
+@media (max-width: 1000px) and (min-width: 701px) {
+  html[data-theme] .controls-scroll { padding-left: 16px; }
+  html[data-theme=gallery] .brand { font-size: 29px; }
+  html[data-theme=soft] .brand { font-size: 23px; }
+}
+@media (max-width: 700px) {
+  html[data-theme] .controls-scroll { padding: 18px 18px 26px; }
+  html[data-theme] :is(input[type=text], input[type=search], input:not([type]), select, textarea) { font-size: 16px; }
+  html[data-theme=precision] .controls-panel { border-radius: 4px 4px 0 0; }
+  html[data-theme=soft] .controls-panel { border-radius: 22px 22px 0 0; }
+  html[data-theme=soft] .surface-tabs { padding: 4px 0 4px 8px; }
+  html[data-theme=soft] .surface-tabs button { min-height: 44px; }
+  html[data-theme=soft] #controls-toggle { border-radius: 12px; }
+  html[data-theme=gallery] .brand { font-size: 29px; }
+  html[data-theme=glass] .controls-scroll { padding: 14px 16px 20px; }
+  html[data-theme=glass] .surface-tabs { padding-inline: 10px; gap: 7px; }
+  html[data-theme=glass] .brand { font-size: 27px; }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  html[data-theme] :is(.glass-surface,#save-status) { background: var(--surface-fallback); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@media (forced-colors: active) {
+  html[data-theme] :is(.glass-surface,#save-status) { background: Canvas; color: CanvasText; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  html[data-theme] .surface-tabs button[aria-pressed=true] { outline: 1px solid Highlight; }
+}

@@ -1,0 +1,497 @@
+{
+  "schemaVersion": 1,
+  "groups": [
+    {
+      "id": "inkform-runtime",
+      "license": "Not specified by this third-party notice",
+      "provenance": "Inkform application source; publication does not grant source reuse rights.",
+      "files": [
+        "studio/public-app.js",
+        "studio/local-api.js",
+        "studio/workspace-validation.js",
+        "studio/storage-limits.js",
+        "studio/application.js",
+        "studio/browser-files.js",
+        "studio/workspace-files.js",
+        "studio/workspace-sync.js",
+        "studio/study-controller.js",
+        "studio/viewport-layout.js",
+        "studio/body-controls.js",
+        "studio/model.js",
+        "studio/body-profiles.js",
+        "studio/model-catalog.js",
+        "studio/regions.js",
+        "studio/renderer-loader.js",
+        "studio/scene.js",
+        "studio/gallery-environment.js",
+        "studio/camera-framing.js",
+        "studio/camera-keyboard.js",
+        "studio/camera-floor.js",
+        "studio/surface-client.js",
+        "studio/surface-worker.js",
+        "studio/surface-map.js",
+        "studio/body-metrics.js",
+        "studio/render-scheduler.js",
+        "studio/ink-atlas.js",
+        "studio/uv-bake.js",
+        "studio/render-quality.js",
+        "studio/geometry-kernel.js",
+        "studio/skin-tones.js",
+        "studio/body-shapes.js",
+        "studio/body-loader.js",
+        "studio/path-preview.js",
+        "studio/denoise-preview.js",
+        "studio/reference-caption.js",
+        "studio/ui-app.js",
+        "studio/ui-app.css",
+        "studio/studio.css",
+        "studio/themes.css",
+        "studio/theme.js"
+      ]
+    },
+    {
+      "id": "public-documents",
+      "license": "Not specified by this third-party notice",
+      "provenance": "Inkform public entry and release notices.",
+      "files": [
+        {
+          "source": "public/studio.html",
+          "path": "studio/index.html"
+        },
+        {
+          "source": "public/index.html",
+          "path": "index.html"
+        },
+        {
+          "source": "public/404.html",
+          "path": "404.html"
+        },
+        {
+          "source": "public/_headers",
+          "path": "_headers"
+        },
+        {
+          "source": "public/_redirects",
+          "path": "_redirects"
+        },
+        {
+          "source": "ASSET-NOTICES.md",
+          "path": "ASSET-NOTICES.md"
+        },
+        {
+          "source": "public/runtime-assets.json",
+          "path": "runtime-assets.json"
+        },
+        {
+          "source": "public/privacy.html",
+          "path": "privacy.html"
+        },
+        {
+          "source": "ASSET-NOTICES.md",
+          "path": "THIRD-PARTY-NOTICES.txt"
+        }
+      ]
+    },
+    {
+      "id": "three",
+      "license": "MIT",
+      "provenance": "studio/vendor/three-version.json; Three.js 0.186.1, https://github.com/mrdoob/three",
+      "files": [
+        "studio/vendor/three-version.json",
+        "studio/vendor/three.core.js",
+        "studio/vendor/three.webgpu.js",
+        "studio/vendor/three.tsl.js",
+        "studio/vendor/three.module.js",
+        "studio/vendor/OrbitControls.js",
+        "studio/vendor/HDRLoader.js",
+        "studio/vendor/RectAreaLightTexturesLib.js",
+        "studio/vendor/LICENSE",
+        "studio/environment/atelier/gltf-loader.js",
+        "studio/environment/atelier/three.LICENSE.txt"
+      ]
+    },
+    {
+      "id": "pathtracer",
+      "license": "MIT",
+      "provenance": "three-gpu-pathtracer 0.0.27 and three-mesh-bvh 0.9.16; studio/vendor/pathtracer.LICENSE.txt",
+      "files": [
+        "studio/vendor/pathtracer.js",
+        "studio/vendor/pathtracer.LICENSE.txt"
+      ]
+    },
+    {
+      "id": "oidn",
+      "license": "MIT AND Apache-2.0",
+      "provenance": "studio/vendor/oidn-provenance.json; oidn-web 0.5.0, Intel OIDN weights pinned revision.",
+      "files": [
+        "studio/vendor/oidn.js",
+        "studio/vendor/oidn-provenance.json",
+        "studio/vendor/oidn.LICENSE.txt",
+        "studio/vendor/oidn-weights.LICENSE.txt",
+        "studio/vendor/rt_hdr_alb_nrm.tza"
+      ]
+    },
+    {
+      "id": "fonts",
+      "license": "OFL-1.1",
+      "provenance": "Self-hosted unmodified Google Fonts families; adjacent original OFL notices.",
+      "files": [
+        "studio/fonts/Manrope-variable.ttf",
+        "studio/fonts/OFL-Manrope.txt",
+        "studio/fonts/IBMPlexSans-variable.ttf",
+        "studio/fonts/IBMPlexSans-LICENSE.txt",
+        "studio/fonts/InstrumentSerif-Regular.ttf",
+        "studio/fonts/InstrumentSerif-LICENSE.txt",
+        "studio/fonts/Nunito-variable.ttf",
+        "studio/fonts/Nunito-LICENSE.txt",
+        "studio/fonts/Fraunces-variable.ttf",
+        "studio/fonts/Fraunces-LICENSE.txt",
+        "studio/fonts/Gloock-Regular.ttf",
+        "studio/fonts/Gloock-LICENSE.txt",
+        "studio/fonts/BodoniModa-variable.ttf",
+        "studio/fonts/BodoniModa-LICENSE.txt",
+        "studio/fonts/Kalnia-variable.ttf",
+        "studio/fonts/Kalnia-LICENSE.txt"
+      ]
+    },
+    {
+      "id": "makehuman",
+      "license": "CC0-1.0",
+      "provenance": "studio/models/provenance.json and studio/models/skin-provenance.json; pinned MakeHuman hm08 assets and official system skin catalog.",
+      "files": [
+        "studio/models/human.json",
+        "studio/models/female.json",
+        "studio/models/eyes.json",
+        "studio/models/female-eyes.json",
+        "studio/models/shapes.json",
+        "studio/models/male-shape-deltas.f32",
+        "studio/models/female-shape-deltas.f32",
+        "studio/models/male-eye-shape-deltas.f32",
+        "studio/models/female-eye-shape-deltas.f32",
+        "studio/models/provenance.json",
+        "studio/models/skin-provenance.json",
+        "studio/models/body-detail-provenance.json",
+        "studio/models/source/brown_eye.png",
+        "studio/models/source/young_lightskinned_male_diffuse.png",
+        "studio/models/source/young_lightskinned_female_diffuse.png",
+        "studio/models/source/LICENSE.md",
+        "studio/models/source/LICENSE.ASSETS.md",
+        "studio/models/detail/Aksel_Skin_NRM.png",
+        "studio/models/detail/LICENSE.md",
+        "studio/models/detail/provenance.json"
+      ]
+    },
+    {
+      "id": "blender-studio",
+      "license": "CC0-1.0",
+      "provenance": "studio/models/blender-studio/provenance.json; official Human Base Meshes asset bundle v1.4.1.",
+      "files": [
+        "studio/models/blender-studio/male.json",
+        "studio/models/blender-studio/female.json",
+        "studio/models/blender-studio/male-eyes.json",
+        "studio/models/blender-studio/female-eyes.json",
+        "studio/models/blender-studio/shapes.json",
+        "studio/models/blender-studio/male-sculpt-normal.png",
+        "studio/models/blender-studio/female-sculpt-normal.png",
+        "studio/models/blender-studio/male-sculpt-normal-4k.png",
+        "studio/models/blender-studio/female-sculpt-normal-4k.png",
+        "studio/models/blender-studio/LICENSE.txt",
+        "studio/models/blender-studio/provenance.json"
+      ]
+    },
+    {
+      "id": "mhr",
+      "license": "Apache-2.0",
+      "provenance": "studio/models/mhr/provenance.json; MHR v1.0.1 assets.zip bundled LICENSE, upstream issue #62 confirms model asset license.",
+      "files": [
+        "studio/models/mhr/neutral.json",
+        "studio/models/mhr/shapes.json",
+        "studio/models/mhr/LICENSE.txt",
+        "studio/models/mhr/provenance.json"
+      ]
+    },
+    {
+      "id": "drummyfish",
+      "license": "CC0-1.0",
+      "provenance": "studio/models/drummyfish/provenance.json; Drummyfish manually authored 3D male on OpenGameArt.",
+      "files": [
+        "studio/models/drummyfish/male.json",
+        "studio/models/drummyfish/shapes.json",
+        "studio/models/drummyfish/skin-original.png",
+        "studio/models/drummyfish/LICENSE.md",
+        "studio/models/drummyfish/provenance.json"
+      ]
+    },
+    {
+      "id": "atelier",
+      "license": "CC0-1.0",
+      "provenance": "studio/models/atelier/provenance.json; pinned CharMorph-Vitruvian assets, independent runtime conversion.",
+      "files": [
+        "studio/models/atelier/male.json",
+        "studio/models/atelier/female.json",
+        "studio/models/atelier/shapes.json",
+        "studio/models/atelier/male-shape-deltas.f32",
+        "studio/models/atelier/female-shape-deltas.f32",
+        "studio/models/atelier/skin-clean.png",
+        "studio/models/atelier/skin-clean-4k.jpg",
+        "studio/models/atelier/skin-height.png",
+        "studio/models/atelier/eye-brown.png",
+        "studio/models/atelier/fabric-charcoal.png",
+        "studio/models/atelier/LICENSE.md",
+        "studio/models/atelier/provenance.json",
+        "studio/models/atelier/male-eyes.json",
+        "studio/models/atelier/male-eyes-shape-deltas.f32",
+        "studio/models/atelier/male-brows.json",
+        "studio/models/atelier/male-brows-shape-deltas.f32",
+        "studio/models/atelier/male-hair.json",
+        "studio/models/atelier/male-hair-shape-deltas.f32",
+        "studio/models/atelier/male-shorts.json",
+        "studio/models/atelier/male-shorts-shape-deltas.f32",
+        "studio/models/atelier/male-tank.json",
+        "studio/models/atelier/male-tank-shape-deltas.f32",
+        "studio/models/atelier/female-eyes.json",
+        "studio/models/atelier/female-eyes-shape-deltas.f32",
+        "studio/models/atelier/female-brows.json",
+        "studio/models/atelier/female-brows-shape-deltas.f32",
+        "studio/models/atelier/female-hair.json",
+        "studio/models/atelier/female-hair-shape-deltas.f32",
+        "studio/models/atelier/female-shorts.json",
+        "studio/models/atelier/female-shorts-shape-deltas.f32",
+        "studio/models/atelier/female-tank.json",
+        "studio/models/atelier/female-tank-shape-deltas.f32"
+      ]
+    },
+    {
+      "id": "room",
+      "license": "CC0-1.0",
+      "provenance": "studio/environment/treatment-room/provenance.json; original local geometry, procedural materials and baked images.",
+      "files": [
+        "studio/environment/treatment-room/treatment-room.glb",
+        "studio/environment/treatment-room/room-lighting.jpg",
+        "studio/environment/treatment-room/floor-lighting.jpg",
+        "studio/environment/treatment-room/LICENSE.txt",
+        "studio/environment/treatment-room/provenance.json"
+      ]
+    },
+    {
+      "id": "environment-hdr",
+      "license": "CC0-1.0",
+      "provenance": "studio/environment/provenance.json; Studio Small 09 by Sergej Majboroda, Poly Haven.",
+      "files": [
+        "studio/environment/studio_small_09_1k.hdr",
+        "studio/environment/provenance.json"
+      ]
+    },
+    {
+      "id": "package-react",
+      "license": "MIT",
+      "provenance": "react 19.3.0; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/react/LICENSE",
+          "path": "licenses/react-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-react-dom",
+      "license": "MIT",
+      "provenance": "react-dom 19.3.0; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/react-dom/LICENSE",
+          "path": "licenses/react-dom-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-scheduler",
+      "license": "MIT",
+      "provenance": "scheduler 0.28.0; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/scheduler/LICENSE",
+          "path": "licenses/scheduler-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-use-sync-external-store",
+      "license": "MIT",
+      "provenance": "use-sync-external-store 1.7.0; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/use-sync-external-store/LICENSE",
+          "path": "licenses/use-sync-external-store-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-@base-ui/react",
+      "license": "MIT",
+      "provenance": "@base-ui/react 1.9.0; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/@base-ui/react/LICENSE",
+          "path": "licenses/base-ui-react-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-@base-ui/utils",
+      "license": "MIT",
+      "provenance": "@base-ui/utils 0.5.0; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/@base-ui/utils/LICENSE",
+          "path": "licenses/base-ui-utils-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-@floating-ui/core",
+      "license": "MIT",
+      "provenance": "@floating-ui/core 1.8.0; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/@floating-ui/core/LICENSE",
+          "path": "licenses/floating-ui-core-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-@floating-ui/dom",
+      "license": "MIT",
+      "provenance": "@floating-ui/dom 1.8.0; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/@floating-ui/dom/LICENSE",
+          "path": "licenses/floating-ui-dom-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-@floating-ui/react-dom",
+      "license": "MIT",
+      "provenance": "@floating-ui/react-dom 2.1.9; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/@floating-ui/react-dom/LICENSE",
+          "path": "licenses/floating-ui-react-dom-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-@floating-ui/utils",
+      "license": "MIT",
+      "provenance": "@floating-ui/utils 0.2.12; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/@floating-ui/utils/LICENSE",
+          "path": "licenses/floating-ui-utils-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-class-variance-authority",
+      "license": "Apache-2.0",
+      "provenance": "class-variance-authority 0.7.1; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/class-variance-authority/LICENSE",
+          "path": "licenses/class-variance-authority-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-clsx",
+      "license": "MIT",
+      "provenance": "clsx 2.1.1; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/clsx/license",
+          "path": "licenses/clsx-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-cn",
+      "license": "MIT",
+      "provenance": "cn 0.4.0; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/cn/LICENSE",
+          "path": "licenses/cn-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-lucide-react",
+      "license": "ISC",
+      "provenance": "lucide-react 1.55.0; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/lucide-react/LICENSE",
+          "path": "licenses/lucide-react-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-reselect",
+      "license": "MIT",
+      "provenance": "reselect 5.3.0; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/reselect/LICENSE",
+          "path": "licenses/reselect-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-tailwindcss",
+      "license": "MIT",
+      "provenance": "tailwindcss 4.3.3; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/tailwindcss/LICENSE",
+          "path": "licenses/tailwindcss-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-tw-animate-css",
+      "license": "MIT",
+      "provenance": "tw-animate-css 1.4.0; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/tw-animate-css/LICENSE",
+          "path": "licenses/tw-animate-css-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-assemblyscript",
+      "license": "Apache-2.0",
+      "provenance": "assemblyscript 0.28.20; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/assemblyscript/LICENSE",
+          "path": "licenses/assemblyscript-LICENSE.txt"
+        },
+        {
+          "source": "node_modules/assemblyscript/NOTICE",
+          "path": "licenses/assemblyscript-NOTICE.txt"
+        },
+        "studio/wasm/morph.wasm"
+      ]
+    },
+    {
+      "id": "shadcn",
+      "license": "MIT",
+      "provenance": "studio/ui/SHADCN-LICENSE; locally adapted shadcn UI components.",
+      "files": [
+        "studio/ui/SHADCN-LICENSE"
+      ]
+    }
+  ]
+}

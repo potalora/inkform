@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "asset": "Inkform zen cyberpunk studio",
+  "authoringVersion": "6.0.0",
+  "generatedAt": "2026-10-12T12:35:59.936109+00:00",
+  "software": "Blender 5.2.1 LTS",
+  "license": "CC0-1.0",
+  "runtimeFiles": [
+    {
+      "file": "treatment-room.glb",
+      "bytes": 2458412,
+      "sha256": "eae3d17487355301b63a70e847ff808a7c12bfcb410f505b1dd7745d819d9e55"
+    },
+    {
+      "file": "room-lighting.jpg",
+      "bytes": 684828,
+      "sha256": "4cfbf45ca03fd5705656763432f5823798c4d6a49615aacbd530d3da3a71bc93"
+    },
+    {
+      "file": "floor-lighting.jpg",
+      "bytes": 43888,
+      "sha256": "da2060333739331708e3e0fae6970d1646355937d7088a99edb97614e8df0a2c"
+    }
+  ],
+  "authoringScript": {
+    "file": "create_room.py",
+    "bytes": 28216,
+    "sha256": "bf5371faaa0933aaeebfd1d9a2108bdfdafee255a2dd79d6bb43e25d67430090"
+  },
+  "geometry": {
+    "triangles": 53352,
+    "meshes": 11,
+    "drawCalls": 11,
+    "units": "metres",
+    "coordinateSystem": "glTF Y up",
+    "dimensionsMetres": [
+      12.0,
+      3.0675,
+      12.0
+    ]
+  },
+  "budgets": {
+    "maxTriangles": 75000,
+    "maxMainDrawCalls": 16,
+    "maxGlbBytes": 3000000,
+    "maxDecodedTextureBytes": 67108864,
+    "maxCompressedImageBytes": 3000000
+  },
+  "materials": {
+    "opaque": "Shared baked radiance; KHR_materials_unlit except floor",
+    "glass": "Room_Glass and Room_WindowGlass use KHR_materials_transmission and KHR_materials_ior; retain physical material at runtime"
+  },
+  "bake": {
+    "device": "CPU",
+    "samples": 128,
+    "denoiser": "OpenImageDenoise",
+    "roomAtlas": [
+      2048,
+      2048
+    ],
+    "floorAtlas": [
+      1024,
+      1024
+    ],
+    "encoding": "sRGB JPEG",
+    "components": [
+      "diffuse direct",
+      "diffuse indirect",
+      "albedo",
+      "integrated architectural emission"
+    ]
+  },
+  "sceneContent": [
+    "four semantic mineral concrete walls; left wall has two tall glazed apertures",
+    "warm rear-right vertical timber field and short return with two restrained ice-jade light reveals",
+    "one continuous textured 12 by 12 metre concrete floor without panel joints",
+    "one unchanged original graphite upholstered tattoo bench",
+    "one clear architectural glass return plus two window panes",
+    "three original sculptural perimeter plants: broadleaf, fine arching palm, upright evergreen in mineral vessels"
+  ],
+  "sources": [
+    {
+      "file": "../atelier/treatment-bed.glb",
+      "bytes": 379808,
+      "sha256": "36b5c93d464a3e1565b7710907c488bb5ce7cc1632a1fb05812ec5fbc9e39571",
+      "license": "CC0-1.0",
+      "origin": "Original locally authored furniture",
+      "authoringFile": "../atelier/create_assets.py",
+      "authoringSource": {
+        "file": "../atelier/create_assets.py",
+        "bytes": 5709,
+        "sha256": "6f3784b8aa685f1de3ab772ba447adadbccd34485f9f7c0dcac690b7cef2233e"
+      }
+    }
+  ],
+  "externalAssets": [],
+  "externalAssetStatement": "No downloaded models, photos, textures, paid APIs or other external assets used. All remaining geometry and procedural materials are original local authoring."
+}

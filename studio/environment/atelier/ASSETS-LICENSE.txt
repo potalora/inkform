@@ -1,0 +1,18 @@
+Original Daylight Atelier geometry and procedural textures
+SPDX-License-Identifier: CC0-1.0
+
+The flat tattoo treatment bed, oak cabinet, room architecture, planter, olive tree,
+supply bottles, and generated oak grain were authored specifically for
+this project. These original generated assets are dedicated to the public
+domain under CC0 1.0 Universal:
+https://creativecommons.org/publicdomain/zero/1.0/
+
+The photographed wall and floor PBR textures in textures/ are separate
+Poly Haven CC0 assets. Their original authors, download URLs, physical sizes,
+source checksums and local SHA256 hashes are recorded in textures/provenance.json
+and textures/ATTRIBUTION.md. Poly Haven's asset license is published at:
+https://polyhaven.com/license
+
+The Three.js GLTF loader is separately MIT licensed; see three.LICENSE.txt.
+The existing studio_small_09_1k.hdr retains its own existing Poly Haven
+provenance at ../provenance.json.

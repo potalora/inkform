@@ -1,0 +1,15 @@
+// Model measurements, not ISO-conformant anthropometry or measurements of the user.
+// Arms: perpendicular to shoulder→elbow at48%; waist/hips: fixed reference levels1.10/.91m.
+const sub=(a,b)=>a.map((v,i)=>v-b[i]),dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0),key=p=>p.map(v=>Math.round(v*1e6)).join(',');
+export function sectionCircumference(positions,indices,origin,normal,accept=()=>true){
+ const segments=new Map();for(let i=0;i<indices.length;i+=3){const ids=[indices[i],indices[i+1],indices[i+2]];if(!accept(ids))continue;const p=ids.map(id=>Array.from(positions.slice(id*3,id*3+3))),d=p.map(v=>dot(sub(v,origin),normal));if(d.every(v=>v>1e-9)||d.every(v=>v< -1e-9))continue;const hits=new Map();for(let j=0;j<3;j++){const k=(j+1)%3;if(Math.abs(d[j])<1e-9)hits.set(key(p[j]),p[j]);if(d[j]*d[k]<0){const t=d[j]/(d[j]-d[k]),v=p[j].map((x,n)=>x+(p[k][n]-x)*t);hits.set(key(v),v);}}if(hits.size!==2)continue;const [[a,pa],[b,pb]]=Array.from(hits);if(a===b)continue;const id=a<b?`${a}|${b}`:`${b}|${a}`;segments.set(id,{a,b,length:Math.hypot(...sub(pa,pb))});}
+ const graph=new Map();for(const s of segments.values())for(const [a,b]of [[s.a,s.b],[s.b,s.a]]){if(!graph.has(a))graph.set(a,[]);graph.get(a).push({to:b,length:s.length});}
+ let greatest=0;const seen=new Set();for(const start of graph.keys()){if(seen.has(start))continue;const stack=[start];let total=0,closed=true;while(stack.length){const a=stack.pop();if(seen.has(a))continue;seen.add(a);const edges=graph.get(a);if(edges.length!==2)closed=false;for(const edge of edges){total+=edge.length;if(!seen.has(edge.to))stack.push(edge.to);}}if(closed)greatest=Math.max(greatest,total/2);}return greatest>0?greatest*100:null;
+}
+export function measureBody(positions,indices,weights,metadata={},state={}){
+ if(!(positions instanceof Float32Array)||positions.length%3||!weights||weights.length!==positions.length/3*5)throw new TypeError('Model positions and five anatomical weights per vertex required');
+ let lo=Infinity,hi=-Infinity;for(let i=1;i<positions.length;i+=3){lo=Math.min(lo,positions[i]);hi=Math.max(hi,positions[i]);}const height=hi-lo,scale=height/(metadata.height||1.753),limbs=metadata.landmarks||{},accept=channel=>ids=>ids.reduce((sum,id)=>sum+weights[id*5+channel],0)/3>.5;
+ const arm=(side,channel)=>{const shoulder=limbs[side]?.shoulder||metadata.shoulder,elbow=limbs[side]?.elbow||metadata.elbow;if(!shoulder||!elbow)return null;const sign=side==='R'?-1:1,s=shoulder.map((v,i)=>v*scale*(i===0?sign*Math.sign(shoulder[0]||1):1)),e=elbow.map((v,i)=>v*scale*(i===0?sign*Math.sign(elbow[0]||1):1)),axis=sub(e,s),length=Math.hypot(...axis);if(!length)return null;const origin=s.map((v,i)=>v+axis[i]*.48);return sectionCircumference(positions,indices,origin,axis.map(v=>v/length),accept(channel));};
+ const trunk=ids=>ids.reduce((sum,id)=>sum+weights[id*5+2]+weights[id*5+3]+weights[id*5+4],0)/3>.5;
+ return {height:Number.isFinite(height)&&height>0?height*100:null,leftUpperArm:arm('L',0),rightUpperArm:arm('R',1),waist:sectionCircumference(positions,indices,[0,lo+1.10*scale,0],[0,1,0],trunk),hips:sectionCircumference(positions,indices,[0,lo+.91*scale,0],[0,1,0],trunk)};
+}

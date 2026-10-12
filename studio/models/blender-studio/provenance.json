@@ -1,0 +1,352 @@
+{
+  "bodyModelId": "blender-studio-v1",
+  "version": "1.4.1",
+  "source": "https://www.blender.org/download/demo-files/",
+  "download": "https://download.blender.org/demo/asset-bundles/human-base-meshes/human-base-meshes-bundle-v1.4.1.zip",
+  "assetLicense": "CC0-1.0",
+  "assetLicenseEvidence": "Official bundle listing, embedded bundle README and individual realistic body/eye metadata. Unrelated Rain Rig License text block does not describe these assets.",
+  "sourceBlendSHA256": "3c121505651140ceb4d69fd1d8923f7788ffadd81672f5be14845a5f2c75c137",
+  "recipe": "scripts/export-blender-studio-body.py",
+  "uvAtlas": {
+    "columns": 6,
+    "rows": 4,
+    "gutterFractionPerCell": 0.02,
+    "sourceTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        5,
+        0
+      ],
+      [
+        6,
+        0
+      ],
+      [
+        7,
+        0
+      ],
+      [
+        8,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        7,
+        2
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ]
+  },
+  "counts": {
+    "male": {
+      "vertices": 63005,
+      "triangles": 84680,
+      "eyeVertices": 1156,
+      "eyeTriangles": 2176,
+      "landmarks": {
+        "L": {
+          "shoulder": [
+            0.1641789,
+            1.3710308,
+            -0.0056025
+          ],
+          "elbow": [
+            0.2533863,
+            1.1128101,
+            1.42e-05
+          ],
+          "wrist": [
+            0.2912834,
+            0.8831782,
+            0.0658574
+          ],
+          "hip": [
+            0.0958774,
+            0.8330814,
+            0.0230171
+          ],
+          "knee": [
+            0.1441566,
+            0.4703394,
+            -0.0179333
+          ],
+          "ankle": [
+            0.1784308,
+            0.0721759,
+            -0.0611451
+          ]
+        },
+        "R": {
+          "shoulder": [
+            -0.163849,
+            1.3711422,
+            -0.0054184
+          ],
+          "elbow": [
+            -0.2530877,
+            1.1128092,
+            -8.58e-05
+          ],
+          "wrist": [
+            -0.2911477,
+            0.883094,
+            0.0658606
+          ],
+          "hip": [
+            -0.0956841,
+            0.8330402,
+            0.0230136
+          ],
+          "knee": [
+            -0.1442473,
+            0.4701265,
+            -0.0180981
+          ],
+          "ankle": [
+            -0.1782846,
+            0.0721898,
+            -0.0611463
+          ]
+        }
+      },
+      "indexSHA256": "ae8f6f8a724f3514355922d4979f87f2afb77f5700923362e617d7d36bff15b1"
+    },
+    "female": {
+      "vertices": 64172,
+      "triangles": 84680,
+      "eyeVertices": 1156,
+      "eyeTriangles": 2176,
+      "landmarks": {
+        "L": {
+          "shoulder": [
+            0.1434682,
+            1.3823739,
+            -0.0093586
+          ],
+          "elbow": [
+            0.1999535,
+            1.1184717,
+            -0.0294915
+          ],
+          "wrist": [
+            0.2663609,
+            0.8864233,
+            0.0266076
+          ],
+          "hip": [
+            0.1000601,
+            0.8510324,
+            0.0065918
+          ],
+          "knee": [
+            0.1162142,
+            0.4822217,
+            -0.007402
+          ],
+          "ankle": [
+            0.1287825,
+            0.0794783,
+            -0.045962
+          ]
+        },
+        "R": {
+          "shoulder": [
+            -0.143571,
+            1.3826265,
+            -0.0093408
+          ],
+          "elbow": [
+            -0.1998721,
+            1.1186521,
+            -0.0292019
+          ],
+          "wrist": [
+            -0.2659266,
+            0.8864032,
+            0.0266211
+          ],
+          "hip": [
+            -0.1001533,
+            0.8510208,
+            0.0065578
+          ],
+          "knee": [
+            -0.1163195,
+            0.4821771,
+            -0.0071343
+          ],
+          "ankle": [
+            -0.1287329,
+            0.0794746,
+            -0.0459831
+          ]
+        }
+      },
+      "indexSHA256": "bcac11715202eca834bf80c6893e33e635ba12f1cc81bdc186063afc6ab6eae7"
+    }
+  },
+  "files": {
+    "female-eyes.json": {
+      "bytes": 143467,
+      "sha256": "573dc12a8c89b07fc6e6ac1cfd770e8d4b41c75f1805bdc2b7b44548ca684566"
+    },
+    "male-eyes.json": {
+      "bytes": 143415,
+      "sha256": "1538744351cf9823836f9aaee3dac4be787090e72068fa0d79760d1de961d895"
+    },
+    "male.json": {
+      "bytes": 8142344,
+      "sha256": "43f90e8f90d22b6322dfdec6a87868f9fdc530a304bf981952bac559ffb1d4a4"
+    },
+    "README.md": {
+      "bytes": 613,
+      "sha256": "9ebdbbc0d16eba8e72d4ba2206dd9bd9a2dddd0ed34a0a05f1110c8cee0749fd"
+    },
+    "female.json": {
+      "bytes": 8270416,
+      "sha256": "973dc9b6564274abdde8ca2ee66ff018d17d49f0dd6013d6aadd5937c873b4a9"
+    },
+    "shapes.json": {
+      "bytes": 30725,
+      "sha256": "050ec6e89831947e8471596bd996c376a32f3b43d333aad6dbe02224a68006b9"
+    },
+    "LICENSE.txt": {
+      "bytes": 1285,
+      "sha256": "40282a77017b20ae6c6d5a82c3605781fe4520a4f2d348b3e2975bf90f379607"
+    },
+    "male-sculpt-normal.png": {
+      "bytes": 1187835,
+      "sha256": "2e92617ef48c0e76ee7b7960ad188b910a6e6981f9b9d7e0540db44f38051aab"
+    },
+    "male-sculpt-normal-4k.png": {
+      "bytes": 3184392,
+      "sha256": "7e9573ddfab415489781cca6d5efb2611efb74e3d4ffef7fb7da76dbf4a4e0b3"
+    },
+    "female-sculpt-normal.png": {
+      "bytes": 1125938,
+      "sha256": "6cb739720091f641612cbfaf45809c9827792f663aeb60b72c14b2952c846d04"
+    },
+    "female-sculpt-normal-4k.png": {
+      "bytes": 3008925,
+      "sha256": "d20b96fd123181949465b4f15e89c265fda46204d512503ec127ee3f8a657277"
+    }
+  },
+  "normalDetailBake": {
+    "script": "scripts/bake-blender-body-detail.py",
+    "sha256": "e594c504d313898a8a815c72eeb6983c0a5c418db5bf7881f34f783ae8431ed9",
+    "blender": "5.2.1 LTS",
+    "device": "CPU",
+    "sourceBlendSHA256": "3c121505651140ceb4d69fd1d8923f7788ffadd81672f5be14845a5f2c75c137",
+    "bodies": {
+      "male": {
+        "retainedGeometrySHA256": {
+          "positions": "c7d28afe8b144090f16823942538c3cc5cf6e7f0a02354c0c24209930d64170f",
+          "indices": "4da629f95c0a803f89562056e9c248450143256efc2be69a72aa95ea978a3989",
+          "uvs": "8cead015a055b8c241332926e5d977e2d72466bd431ee6122a0fb37ff9dd60a4",
+          "anatomicalWeights": "dcb755a65ba6e03d1cb64219524b41343f7562cef9756b4b36b655aea0bc04e5",
+          "clothingMask": "d35b847837d9aeea313e3a1088013f577e0ccaa8b502686129087ecc827f7679"
+        },
+        "bakeUVMatchesReleasedAtlas": true,
+        "normalCorrection": "Area-weighted smooth surface normals welded across UV seam duplicates; triangle positions and indices retained",
+        "sourceLevel": 1,
+        "sculptLevel": 3,
+        "method": "Cycles selected-to-active; explicit released level1 triangles and smooth normals",
+        "resolutions": [
+          2048,
+          4096
+        ]
+      },
+      "female": {
+        "retainedGeometrySHA256": {
+          "positions": "6ddfd9594164d988e4f8ee84ef08c50b8a39473ea85b3eaa8baa5b02a29b484a",
+          "indices": "10153704089ef4aa5a48762df16d0268872ca99112a204bfdb1db4a982c4f382",
+          "uvs": "a6a429eb2ff74f8a5bc8c0ca75a34f9b857900dfe38e1be70de5e8aaf2b6f672",
+          "anatomicalWeights": "ce8c5ce907d9a01b7fc480a07466142b07864d984c3fd22bb972b562b72570c2",
+          "clothingMask": "7c34a6770254d32c82d16e12f6ac961da71fdab8da2189202d31e3aee5df1b41"
+        },
+        "bakeUVMatchesReleasedAtlas": true,
+        "normalCorrection": "Area-weighted smooth surface normals welded across UV seam duplicates; triangle positions and indices retained",
+        "sourceLevel": 1,
+        "sculptLevel": 3,
+        "method": "Cycles selected-to-active; explicit released level1 triangles and smooth normals",
+        "resolutions": [
+          2048,
+          4096
+        ]
+      }
+    }
+  }
+}

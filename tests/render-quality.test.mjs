@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {choosePixelRatio,createAdaptiveQuality} from '../studio/render-quality.js';
+test('desktop automatic quality retains retina detail while compact screens keep their memory budget',()=>{
+ const desktop=choosePixelRatio({width:1280,height:720,dpr:2}),phone=choosePixelRatio({width:390,height:844,dpr:3});
+ assert.ok(desktop>=1.6,'desktop budget should retain more than 1.6 backing pixels per CSS pixel');
+ assert.ok(390*844*phone*phone<=1_500_001);
+});
+test('quality bounds pixel work on dense mobile and desktop displays',()=>{for(const [width,height,dpr] of [[390,844,3],[1920,1080,2],[2560,1440,3]]){const efficient=choosePixelRatio({width,height,dpr,quality:'efficient'}),auto=choosePixelRatio({width,height,dpr,quality:'auto'}),high=choosePixelRatio({width,height,dpr,quality:'high'});assert.ok(efficient>0&&efficient<=auto&&auto<=high&&high<=dpr&&high<=2.5);assert.ok(width*height*auto*auto<=(width<=700?1_500_001:2_400_001));}});
+test('invalid viewport and DPR cannot produce an invalid render size; scale is bounded',()=>{for(const value of [undefined,NaN,Infinity,-1,0]){assert.ok(Number.isFinite(choosePixelRatio({width:value,height:value,dpr:value})));}const normal=choosePixelRatio({width:390,height:844,dpr:3}),reduced=choosePixelRatio({width:390,height:844,dpr:3,scale:.6});assert.ok(reduced<normal&&reduced>0);assert.equal(choosePixelRatio({width:390,height:844,dpr:3,scale:100}),normal);});
+test('isolated slow frames and hidden-tab gaps do not downgrade auto quality',()=>{const a=createAdaptiveQuality({windowSize:4});for(const ms of [16,16,120,16,16,16,16,16,1000,16,16,16,16])a.sample(ms);assert.equal(a.getScale(),1);});
+test('sustained slow windows lower within bounds and recovery requires longer fast stability',()=>{const a=createAdaptiveQuality({windowSize:4});for(let i=0;i<4;i++)a.sample(40);assert.equal(a.getScale(),1);for(let i=0;i<4;i++)a.sample(40);assert.ok(a.getScale()<1);const lower=a.getScale();for(let i=0;i<8;i++)a.sample(16);assert.equal(a.getScale(),lower);for(let i=0;i<16;i++)a.sample(16);assert.ok(a.getScale()>lower);for(let i=0;i<400;i++)a.sample(40);assert.ok(a.getScale()>=.6);for(let i=0;i<800;i++)a.sample(16);assert.equal(a.getScale(),1);});
+test('explicit quality modes do not adapt; reset clears window history and restores scale',()=>{for(const quality of ['high','efficient']){const a=createAdaptiveQuality({quality,windowSize:4});for(let i=0;i<100;i++)a.sample(50);assert.equal(a.getScale(),1);}const a=createAdaptiveQuality({windowSize:4});for(let i=0;i<8;i++)a.sample(40);assert.ok(a.getScale()<1);a.reset();assert.equal(a.getScale(),1);for(let i=0;i<4;i++)a.sample(40);assert.equal(a.getScale(),1);});

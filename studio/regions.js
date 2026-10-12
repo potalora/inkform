@@ -1,0 +1,2 @@
+export const REGION_TARGETS={leftUpperArm:[.22,1.27,.04],rightUpperArm:[-.22,1.27,.04],leftForearm:[.24,1.02,.07],rightForearm:[-.24,1.02,.07],chest:[0,1.32,.10],back:[0,1.30,-.08],abdomen:[0,1.12,.1],leftThigh:[.10,.70,.09],rightThigh:[-.10,.70,.09],leftCalf:[.17,.34,.02],rightCalf:[-.17,.34,.02],neck:[0,1.52,.06],leftHand:[.225,.84,.08],rightHand:[-.225,.84,.08],leftFoot:[.19,.05,.10],rightFoot:[-.19,.05,.10],head:[0,1.65,.13]};
+export const REGIONS=Object.keys(REGION_TARGETS).map(id=>({id,label:id.replace(/([A-Z])/g,' $1').replace(/^./,c=>c.toUpperCase())}));

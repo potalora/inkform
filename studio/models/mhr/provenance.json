@@ -1,0 +1,27 @@
+{
+  "version": "v1.0.1",
+  "source": "https://github.com/facebookresearch/MHR/releases/tag/v1.0.1",
+  "download": "https://github.com/facebookresearch/MHR/releases/download/v1.0.1/assets.zip",
+  "assetLicense": "Apache-2.0",
+  "assetLicenseEvidence": "Bundled LICENSE.txt and https://github.com/facebookresearch/MHR/issues/62",
+  "sourceFBXSHA256": "d66fbca815bcde6532f728f1f63071003c5d43ff44f56e263a0807baec1ae055",
+  "recipe": "scripts/export-mhr-body.py",
+  "files": {
+    "README.md": {
+      "bytes": 328,
+      "sha256": "bc987cc6a35168a98d74f4c044f4a3c004bed4717f9b3553a7601830b3ee4d7a"
+    },
+    "shapes.json": {
+      "bytes": 15370,
+      "sha256": "7b2807faff8319a82475356ad90ba41e12b28fc03d68931a8429dbfa288577b9"
+    },
+    "neutral.json": {
+      "bytes": 2638973,
+      "sha256": "2e8f248176ed551adce035af95a67c79934ca2369e30a54f28420025faea9b4f"
+    },
+    "LICENSE.txt": {
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    }
+  }
+}

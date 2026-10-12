@@ -1,0 +1,33 @@
+/* Tailwind utilities are scoped to UI source; existing studio styles own layout. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@import "tw-animate-css";
+@source "./";
+
+.ui-dialog-backdrop { background:rgb(12 16 16 / .28); backdrop-filter:blur(6px); }
+.ui-dialog {
+  position:fixed; inset:auto; top:50%; left:50%; transform:translate(-50%,-50%);
+  z-index:51; width:min(520px,calc(100vw - 32px)); max-height:calc(100dvh - 32px);
+  overflow:auto; overscroll-behavior:contain; padding:32px; border-radius:18px; color:var(--text);
+  outline:none; box-sizing:border-box;
+}
+.ui-dialog h2 { padding-right:32px; margin:0 0 20px; font-family:var(--display-serif,'Bodoni Moda',serif); font-weight:500; font-size:30px; letter-spacing:-.025em; }
+.ui-dialog p,.ui-dialog li { font-size:14px; line-height:1.65; }
+.ui-dialog ol { padding-left:20px; }
+.ui-dialog li+li { margin-top:12px; }
+.ui-dialog .dialog-close { position:absolute; right:14px; top:14px; padding:10px; min-width:44px; min-height:44px; }
+.ui-dialog .layer-tools { margin-top:24px; gap:12px; }
+.ui-dialog .layer-tools button { margin-top:0; }
+.ui-dialog .field { margin-top:24px; }
+.ui-dialog .hint { margin-top:16px; }
+.ui-dialog > .primary { margin-top:24px; }
+.ui-dialog [data-slot=dialog-description] { color:var(--muted); }
+.ui-dialog[data-starting-style],.ui-dialog[data-ending-style] { opacity:0; transform:translate(-50%,-48%); }
+.ui-dialog { transition:opacity 140ms ease,transform 140ms ease; }
+.ui-dialog input[type=text] { width:100%; }
+.ui-button.ghost { background:transparent; border-color:transparent; }
+.ui-button.destructive { color:var(--danger); }
+.react-surface[hidden] { display:none; }
+@media(max-width:700px) { .ui-dialog { padding:24px; } }
+@media(prefers-reduced-motion:reduce) { .ui-dialog { transition:none; } }

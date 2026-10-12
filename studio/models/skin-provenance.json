@@ -1,0 +1,14 @@
+{
+  "file": "source/young_lightskinned_male_diffuse.png",
+  "url": "https://media.githubusercontent.com/media/s20220526/makehuman-assets/8cf9645b975a98eea056b140df11a1d278da0d10/base/skins/textures/young_lightskinned_male_diffuse.png",
+  "sha256": "862a26e335e958b70534cb5f0d7c47ef30ab148a56c42b3e9da969cf76f12963",
+  "dimensions": [
+    2048,
+    2048
+  ],
+  "license": "CC0-1.0",
+  "licenseEvidence": "https://static.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html",
+  "material": "source/young_caucasian_male.mhmat",
+  "mirrorCommit": "8cf9645b975a98eea056b140df11a1d278da0d10",
+  "note": "Official MakeHuman system young_caucasian_male material references young_lightskinned_male_diffuse.png; downloaded from pinned mirror of official asset repository."
+}
