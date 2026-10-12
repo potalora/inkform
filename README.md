@@ -21,4 +21,4 @@ Open http://127.0.0.1:8788/studio/. The server runs locally; a Cloudflare accoun
 
 Projects and imported artwork stay in your browser's storage. Clearing browser data removes them. Different browsers and site addresses have separate workspaces. Export a workspace backup to keep a separate copy.
 
-An application license has not been selected yet. See [LICENSE](LICENSE) and [third-party asset notices](ASSET-NOTICES.md) for the bundled components' separate terms.
+The application source uses the [MIT License](LICENSE). Third-party components and assets keep their separate licenses; see [ASSET-NOTICES.md](ASSET-NOTICES.md).
