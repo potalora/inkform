@@ -3,10 +3,11 @@
   "groups": [
     {
       "id": "inkform-runtime",
-      "license": "Not specified by this third-party notice",
-      "provenance": "Inkform application source; publication does not grant source reuse rights.",
+      "license": "MIT",
+      "provenance": "Inkform application source; licensed under the repository LICENSE.",
       "files": [
         "studio/public-app.js",
+        "studio/wasm/morph.wasm",
         "studio/local-api.js",
         "studio/workspace-validation.js",
         "studio/storage-limits.js",
@@ -51,8 +52,8 @@
     },
     {
       "id": "public-documents",
-      "license": "Not specified by this third-party notice",
-      "provenance": "Inkform public entry and release notices.",
+      "license": "MIT",
+      "provenance": "Inkform first-party public documents; licensed under the repository LICENSE. Third-party assets retain their separate notices.",
       "files": [
         {
           "source": "public/studio.html",
@@ -89,6 +90,10 @@
         {
           "source": "ASSET-NOTICES.md",
           "path": "THIRD-PARTY-NOTICES.txt"
+        },
+        {
+          "source": "LICENSE",
+          "path": "LICENSE"
         }
       ]
     },
@@ -481,8 +486,7 @@
         {
           "source": "node_modules/assemblyscript/NOTICE",
           "path": "licenses/assemblyscript-NOTICE.txt"
-        },
-        "studio/wasm/morph.wasm"
+        }
       ]
     },
     {

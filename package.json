@@ -14,7 +14,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "type": "module",
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.3",
