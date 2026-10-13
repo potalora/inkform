@@ -22,7 +22,7 @@ function CompositionPanelView({app, snapshot}) {
   const summary = chosen.length === 1 && hasLocked
     ? 'Locked in place. Unlock to adjust this tattoo.'
     : chosen.length === 1
-    ? `${chosen[0].existing ? 'Existing tattoo' : 'New idea'} · approximate placement`
+    ? `${chosen[0].existing ? 'Existing tattoo' : 'New tattoo'} · approximate placement`
     : chosen.length
     ? `${chosen.length} selected · ${items.length} editable · ${chosen.length - items.length} locked${hasLocked ? '. Unlock to adjust locked tattoos.' : items.length > 1 ? '. Changes apply as a group.' : ''}`
     : hasTattoos ? 'Select a tattoo below to adjust its placement.' : 'Add artwork, choose a body area, then adjust width.';
@@ -40,7 +40,7 @@ function CompositionPanelView({app, snapshot}) {
   }
 
   return <section data-surface-content="composition">
-    <div className="composition-heading"><h2>Your composition</h2>{!hasTattoos && <p>Add artwork to begin a placement study.</p>}
+    <div className="composition-heading"><h2>Composition</h2>{!hasTattoos && <p>Add artwork to place a tattoo.</p>}
       {!hasTattoos && <Button variant="primary" id="browse-art" disabled={ui.blocked} onClick={() => actions.showSurface('artwork')}>Add artwork</Button>}
     </div>
     <div data-panel-content="tattoo">
@@ -115,7 +115,7 @@ function CompositionPanelView({app, snapshot}) {
             <img src={asset?.url} width="48" height="52" alt="" />
             <div>
               <div className="layer-title" title={layer.name}>{layer.name}</div>
-              <small>{layer.existing ? 'Existing' : 'Idea'} · {layer.width.toFixed(1)} cm (approx.){layer.locked ? ' · Locked' : ''}</small>
+              <small>{layer.existing ? 'Existing' : 'New'} · {layer.width.toFixed(1)} cm (approx.){layer.locked ? ' · Locked' : ''}</small>
             </div>
             <div className="layer-actions">
               <Button variant="ghost" data-action="visible" data-id={layer.id} title={`${layer.visible ? 'Hide' : 'Show'} ${layer.name}`} aria-label={`${layer.visible ? 'Hide' : 'Show'} ${layer.name}`}
@@ -128,7 +128,7 @@ function CompositionPanelView({app, snapshot}) {
                 disabled={ui.blocked || index === study.tattoos.length - 1} onClick={() => actions.layerAction(layer.id, 'down')}><ArrowDown size={16} aria-hidden="true" /></Button>
             </div>
           </div>;
-        }) : <div className="empty">Start with one tattoo idea.<br /><br />Add artwork, choose a body area, then adjust its approximate size.</div>}
+        }) : <div className="empty">No tattoos added.<br /><br />Add artwork, choose a body area, then adjust its approximate size.</div>}
       </div>
       {hasTattoos && <Button variant="primary" id="browse-art" className="primary" disabled={ui.blocked} onClick={() => actions.showSurface('artwork')}>Add artwork</Button>}
     </div>

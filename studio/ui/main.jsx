@@ -12,7 +12,6 @@ function Header({app, snapshot, headerRef}) {
   const {ui} = snapshot, a = app.actions;
   return <header ref={headerRef} className="masthead glass-surface">
     <a className="brand" href="./" aria-label="Inkform home">inkform<span className="brand-mark" aria-hidden="true">✳</span></a>
-    <p className="brand-caption">A little ink.<br />A little more you.</p>
     <div className="header-right">
       <Button variant="ghost" id="help-open" title="Artwork requirements and shortcuts" onClick={() => a.openDialog('help')}>Help</Button>
       <Button variant="primary" id="save-image" className="save-image" aria-label="Save reference" disabled={ui.blocked || !ui.ready} onClick={a.saveImage}>
@@ -28,7 +27,7 @@ export function StudyCard({app, snapshot, studyRef}) {
   const saveState = ui.saveError ? 'error' : /^Saved(?: |$)/.test(ui.saveLabel) ? 'saved' : 'pending';
   const SaveIcon = saveState === 'error' ? CircleAlert : saveState === 'saved' ? Check : Clock3;
   return <section ref={studyRef} className="study-card glass-surface" aria-label="Current study">
-    <div className="study-card-heading"><p>Your study</p><details className="project-menu"><summary aria-label="Study actions">•••</summary>
+    <div className="study-card-heading"><p>Study</p><details className="project-menu"><summary aria-label="Study actions">•••</summary>
       <div className="project-actions glass-surface">
         <Button variant="ghost" id="new-project" disabled={ui.blocked} onClick={e => menu(e, a.newProject)}>New study</Button>
         <Button variant="ghost" id="rename-project" disabled={ui.blocked} onClick={e => menu(e, a.renameProject)}>Rename</Button>
@@ -49,7 +48,7 @@ export function StudyCard({app, snapshot, studyRef}) {
       <Button variant="ghost" id="undo" aria-label="Undo" disabled={ui.blocked || !ui.canUndo} title="Undo (⌘Z)" onClick={a.undo}><Undo2 size={17} aria-hidden="true" /></Button>
       <Button variant="ghost" id="redo" aria-label="Redo" disabled={ui.blocked || !ui.canRedo} title="Redo (⇧⌘Z)" onClick={a.redo}><Redo2 size={17} aria-hidden="true" /></Button>
       <Button variant="ghost" id="save-alternative" disabled={ui.blocked} onClick={a.saveAlternative}>Save alternative</Button>
-      <Button variant="ghost" id="notes-open" aria-label="Notes for your artist" disabled={ui.blocked} onClick={() => a.openDialog('notes')}><NotebookPen size={17} aria-hidden="true" /><span>Notes for your artist</span></Button>
+      <Button variant="ghost" id="notes-open" aria-label="Study notes" disabled={ui.blocked} onClick={() => a.openDialog('notes')}><NotebookPen size={17} aria-hidden="true" /><span>Notes</span></Button>
     </div>
   </section>;
 }
@@ -124,12 +123,12 @@ function WorkspaceDialogs({app, ui, study}) {
     {ui.nameRequest && <NameDialog app={app} request={ui.nameRequest} />}
     <Dialog open={ui.dialog === 'notes'} onOpenChange={open => { if (!open) a.closeDialog(); }}>
       <DialogContent id="notes-dialog">
-        <DialogTitle render={<h2 />}>Notes for your artist</DialogTitle>
-        <DialogDescription>Keep placement ideas, references and questions with this study.</DialogDescription>
+        <DialogTitle render={<h2 />}>Study notes</DialogTitle>
+        <DialogDescription>Placement, size, references and questions.</DialogDescription>
         <label className="field" htmlFor="project-notes">Study notes</label>
         <textarea id="project-notes" rows="7" placeholder="Placement, size, references, and questions to discuss."
           value={study?.notes || ''} disabled={ui.blocked} onChange={event => a.setNotes(event.target.value)} onBlur={() => a.endGesture('notes')} />
-        <p className="hint">Your notes save automatically with your study.</p>
+        <p className="hint">Notes save automatically.</p>
       </DialogContent>
     </Dialog>
     <Dialog open={ui.dialog === 'data'} onOpenChange={open => { if (!open) a.closeDialog(); }}>
@@ -137,7 +136,7 @@ function WorkspaceDialogs({app, ui, study}) {
         <DialogTitle id="data-dialog-title" render={<h2 />}>Workspace backup</DialogTitle>
         <DialogDescription>{ui.storageMode === 'browser'
           ? 'Artwork and studies save in this browser on this device. Export a backup to keep a separate copy or move to another device. Clearing site data removes your saved workspace.'
-          : 'Artwork and studies save automatically to your private workspace. Export a complete copy to move or safeguard your workspace.'}</DialogDescription>
+          : 'Artwork and studies save automatically to the private workspace. Export a backup to keep a separate copy or move to another device.'}</DialogDescription>
         {ui.storageMode === 'browser' && <p className="hint">{ui.storagePersistence === 'granted' ? 'Browser storage protection is enabled. Keep an exported backup too.' : 'Your browser may clear local storage. Keep an exported backup, especially when using private browsing.'}</p>}
         <Button id="export-backup" variant="primary" disabled={ui.dataBlocked} onClick={a.exportBackup}>Export full workspace</Button>
         <label className="secondary upload-import" htmlFor="import-backup">Restore a workspace backup<input id="import-backup" type="file" accept=".json,application/json" disabled={ui.dataBlocked}
@@ -192,11 +191,11 @@ function StudioApp({app}) {
       <StudyCard app={app} snapshot={snapshot} studyRef={studyRef} />
       <section className="stage" aria-label="Interactive tattoo composition">
         <div id="viewport" ref={viewportRef} aria-busy={ui.rendering} />
-        <div className="stage-top"><h1 id="stage-title">{study?.name || 'Your study'}</h1><p id="stage-meta">{study ? `${study.body.stature.toFixed(1)} cm · ${visibleTattoos} visible tattoo${visibleTattoos === 1 ? '' : 's'}` : 'Approximate body reference'}</p></div>
+        <div className="stage-top"><h1 id="stage-title">{study?.name || 'Study'}</h1><p id="stage-meta">{study ? `${study.body.stature.toFixed(1)} cm · ${visibleTattoos} visible tattoo${visibleTattoos === 1 ? '' : 's'}` : 'Approximate body reference'}</p></div>
         <CameraDock app={app} snapshot={snapshot} dockRef={dockRef} dockGroupRef={dockGroupRef} statusRef={statusRef} />
         <div id="loading" className="loading glass-surface" hidden={!ui.loading && !ui.error}>
-          <h2>{ui.error ? 'We couldn’t open the studio.' : 'Preparing your canvas'}</h2>
-          <p>{ui.error || 'Loading your body reference and artwork.'}</p>
+          <h2>{ui.error ? 'Could not open the studio' : 'Loading studio'}</h2>
+          <p>{ui.error || 'Loading body reference and artwork.'}</p>
           {ui.error && <Button id="reload-app" onClick={() => location.reload()}>Try again</Button>}
           {ui.error && !ui.dataBlocked && <Button id="recover-workspace" onClick={() => app.actions.openDialog('data')}>Back up your workspace</Button>}
         </div>

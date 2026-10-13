@@ -4,9 +4,10 @@ import {HDRLoader} from './vendor/HDRLoader.js';
 import {GLTFLoader} from './environment/atelier/gltf-loader.js';
 
 // The atlases are embedded in this GLB; one asset revision refreshes all of them.
-const asset=name=>new URL(`./environment/treatment-room/${name}?v=zen-studio-1`,import.meta.url).href;
+const asset=name=>new URL(`./environment/treatment-room/${name}?v=indirect-studio-2`,import.meta.url).href;
 const walls={Room_BackWall:['z',-2.75,-1],Room_FrontWall:['z',2.6,1],Room_LeftWall:['x',-2.75,-1],Room_WindowGlass:['x',-2.75,-1],Room_RightWall:['x',2.75,1]};
-const furniture=/^Room_(Cabinetry|Supplies|TreatmentBed|Stool|ProcedureCart|TaskLight|Glass|PlantBroadleaf|PlantPalm|PlantSculptural)$/;
+const ceilingWalls={Room_CeilingRear:'Room_BackWall',Room_CeilingRight:'Room_RightWall'};
+const furniture=/^Room_(Cabinetry|Supplies|TreatmentBed|Stool|ProcedureCart|TaskLight|Glass|GlassFrame|PlantBroadleaf|PlantPalm|PlantSculptural|FloorLampLeft|FloorLampRight)$/;
 
 /** Baked radiance is displayed once; live lighting only shades the person. */
 export function prepareTreatmentRoom(group){
@@ -35,6 +36,9 @@ export function prepareTreatmentRoom(group){
  group.updateMatrixWorld(true);
  // Cached world bounds avoid geometry raycasts in the interactive render loop.
  group.traverse(object=>{if(object.isMesh&&furniture.test(object.name))object.userData.occlusionBounds=new THREE.Box3().setFromObject(object);});
+ // The captured pane and all three mounting channels cut away as one assembly.
+ const glass=group.getObjectByName('Room_Glass'),frame=group.getObjectByName('Room_GlassFrame');
+ if(glass&&frame){glass.userData.occlusionBounds.union(frame.userData.occlusionBounds);frame.userData.occlusionBounds=glass.userData.occlusionBounds;}
  return group;
 }
 
@@ -42,6 +46,8 @@ const origin=new THREE.Vector3(),direction=new THREE.Vector3(),point=new THREE.V
 export function updateTreatmentView(group,camera,target=new THREE.Vector3(0,.85,0)){
  camera.getWorldPosition(origin);
  group.traverse(object=>{
+  const ceilingWall=ceilingWalls[object.name];
+  if(ceilingWall){const wall=walls[ceilingWall];object.visible=origin.y<2.65&&(wall[2]<0?origin[wall[0]]>wall[1]:origin[wall[0]]<wall[1]);return;}
   const wall=walls[object.name];
   if(wall){object.visible=wall[2]<0?origin[wall[0]]>wall[1]:origin[wall[0]]<wall[1];return;}
   const bounds=object.userData.occlusionBounds;if(!bounds)return;

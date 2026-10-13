@@ -10,7 +10,7 @@ import {cameraView} from '../studio/camera-framing.js';
 const bytes=await readFile(new URL('../studio/environment/treatment-room/treatment-room.glb',import.meta.url));
 const jsonLength=bytes.readUInt32LE(12),document=JSON.parse(bytes.subarray(20,20+jsonLength).toString());
 const binary=bytes.subarray(28+jsonLength);
-const names=['Room_FrontWall','Room_BackWall','Room_LeftWall','Room_RightWall','Room_Floor','Room_TreatmentBed','Room_Glass','Room_WindowGlass','Room_PlantBroadleaf','Room_PlantPalm','Room_PlantSculptural'];
+const names=['Room_FrontWall','Room_BackWall','Room_LeftWall','Room_RightWall','Room_Floor','Room_TreatmentBed','Room_Glass','Room_WindowGlass','Room_PlantBroadleaf','Room_PlantPalm','Room_PlantSculptural','Room_GlassFrame','Room_CeilingRear','Room_CeilingRight','Room_FloorLampLeft','Room_FloorLampRight'];
 
 test('interactive glass avoids viewport transmission and retains physical trace parameters',()=>{
  const group=new THREE.Group(),material=new THREE.MeshPhysicalMaterial({transmission:1,roughness:.065,ior:1.45});
@@ -66,30 +66,30 @@ async function loadRoom(){
  return scene;
 }
 
-test('embedded zen studio has walls, floor, unchanged bench, architectural glass and three plants within budget',async()=>{
+test('embedded studio has grounded bench, captured glass, plants and indirect fixtures within budget',async()=>{
  assert.equal(bytes.readUInt32LE(0),0x46546c67);assert.equal(bytes.readUInt32LE(8),bytes.length);assert.ok(bytes.length<=3000000);
  assert.equal(imageSizes.length,2);assert.deepEqual(imageSizes.map(size=>[size.width,size.height]).sort((a,b)=>a[0]-b[0]),[[1024,1024],[2048,2048]]);
  const room=prepareTreatmentRoom(await loadRoom()),metrics=environmentMetrics(room);
- assert.equal(metrics.meshes,11);assert.ok(metrics.triangles<=75000);assert.equal(metrics.textures,2);assert.ok(metrics.decodedTextureBytes<32*1024*1024);
- const actualNames=[];room.traverse(object=>{if(object.isMesh)actualNames.push(object.name);});assert.deepEqual(actualNames.sort(),[...names].sort(),'no cabinetry, supplies, stools, cart, lamps, frames or signage');
+ assert.equal(metrics.meshes,16);assert.ok(metrics.triangles<=75000);assert.equal(metrics.textures,2);assert.ok(metrics.decodedTextureBytes<32*1024*1024);
+ const actualNames=[];room.traverse(object=>{if(object.isMesh)actualNames.push(object.name);});assert.deepEqual(actualNames.sort(),[...names].sort(),'only approved architecture, original bench, plants and indirect fixtures');
  for(const name of names)assert.ok(room.getObjectByName(name)?.isMesh,name);
  const floor=new THREE.Box3().setFromObject(room.getObjectByName('Room_Floor'));assert.ok(floor.max.y<=.002&&floor.max.x>5&&floor.min.x< -5&&floor.max.z>5&&floor.min.z< -5,'continuous floor extends beneath the normal camera orbit');
  disposeAtelierGroup(room);
 });
 
-test('bench reuses only original source geometry and timber stays within architectural wall groups',async()=>{
+test('bench retains original geometry with bounded structural spigots and timber stays in wall groups',async()=>{
  const source=await readFile(new URL('../studio/environment/atelier/treatment-bed.glb',import.meta.url)),sourceLength=source.readUInt32LE(12),sourceDocument=JSON.parse(source.subarray(20,20+sourceLength).toString());
  const sourceTriangles=sourceDocument.nodes.filter(node=>node.mesh!==undefined).reduce((sum,node)=>sum+sourceDocument.meshes[node.mesh].primitives.reduce((count,primitive)=>count+sourceDocument.accessors[primitive.indices??primitive.attributes.POSITION].count/3,0),0);
  const room=await loadRoom(),triangles=mesh=>(mesh.geometry.index?.count||mesh.geometry.attributes.position.count)/3;
- assert.equal(triangles(room.getObjectByName('Room_TreatmentBed')),sourceTriangles,'one original bench, with no added armrest or equipment');
+ const bedTriangles=triangles(room.getObjectByName('Room_TreatmentBed'));assert.ok(bedTriangles>sourceTriangles&&bedTriangles<=sourceTriangles+2000,'original bench plus four small structural spigots');
  for(const [name,budget] of [['Room_BackWall',7000],['Room_FrontWall',600],['Room_LeftWall',1400],['Room_RightWall',3000],['Room_Glass',200],['Room_WindowGlass',400]])assert.ok(triangles(room.getObjectByName(name))<=budget,`${name}: bounded architectural slab, windows and integrated perimeter timber`);
  disposeAtelierGroup(room);
 });
 
-test('bench world-space vertices and triangle topology retain the original source and placement',async()=>{
+test('bench retains every original source face after the measured 4.5 mm grounding correction',async()=>{
  const source=await readFile(new URL('../studio/environment/atelier/treatment-bed.glb',import.meta.url));
  const {scene}=await new GLTFLoader().parseAsync(source.buffer.slice(source.byteOffset,source.byteOffset+source.byteLength),'');
- const placement=new THREE.Group();placement.position.set(1.6,0,-1.5);placement.rotation.y=THREE.MathUtils.degToRad(-35);placement.add(scene);placement.updateMatrixWorld(true);
+ const placement=new THREE.Group();placement.position.set(1.6,-.0045,-1.5);placement.rotation.y=THREE.MathUtils.degToRad(-35);placement.add(scene);placement.updateMatrixWorld(true);
  const room=await loadRoom();room.updateMatrixWorld(true);
  // Blender may join onto another source subobject, changing the local basis
  // by sub-micron float error. Match geometry within 10 micrometres instead of
@@ -118,14 +118,15 @@ test('bench world-space vertices and triangle topology retain the original sourc
   });
   return result.sort();
  }
- const original=triangles(placement,true),current=triangles(room.getObjectByName('Room_TreatmentBed'),false);
- assert.deepEqual(current,original,'no bench faces were added, removed, moved or reshaped');
+ const original=triangles(placement,true),current=triangles(room.getObjectByName('Room_TreatmentBed'),true),counts=new Map();
+ for(const face of current)counts.set(face,(counts.get(face)||0)+1);
+ for(const face of original){assert.ok(counts.get(face)>0,'every original bench face survives the grounding translation');counts.set(face,counts.get(face)-1);}
  disposeAtelierGroup(room);disposeAtelierGroup(placement);
 });
 
 test('room provenance matches current runtime assets, authoring source and reused CC0 bench',async()=>{
  const base=new URL('../studio/environment/treatment-room/',import.meta.url),provenance=JSON.parse(await readFile(new URL('provenance.json',base),'utf8'));
- assert.equal(provenance.license,'CC0-1.0');assert.equal(provenance.geometry.meshes,11);assert.equal(provenance.bake.device,'CPU');assert.deepEqual(provenance.externalAssets,[]);
+ assert.equal(provenance.license,'CC0-1.0');assert.equal(provenance.geometry.meshes,16);assert.equal(provenance.bake.device,'CPU');assert.deepEqual(provenance.externalAssets,[]);
  for(const record of [...provenance.runtimeFiles,provenance.authoringScript,...provenance.sources, ...provenance.sources.map(source=>source.authoringSource)]){
   const data=await readFile(new URL(record.file,base));assert.equal(record.bytes,data.length,record.file);assert.equal(record.sha256,createHash('sha256').update(data).digest('hex'),record.file);
  }
@@ -202,4 +203,44 @@ test('full standing orbit and named inspection cameras keep head, torso, feet an
 test('room resources shared across meshes dispose exactly once, including both baked texture maps',async()=>{
  const room=prepareTreatmentRoom(await loadRoom()),resources=new Set(),counts=new Map();room.traverse(object=>{if(!object.isMesh)return;resources.add(object.geometry);resources.add(object.material);if(object.material.map)resources.add(object.material.map);});
  for(const resource of resources)resource.addEventListener('dispose',()=>counts.set(resource,(counts.get(resource)||0)+1));disposeAtelierGroup(room);assert.equal(counts.size,resources.size);assert.ok([...counts.values()].every(count=>count===1));
+});
+
+test('bench rubber feet meet the pour and four structural spigots bridge the authored trestle gaps',async()=>{
+ const room=await loadRoom();room.updateMatrixWorld(true);
+ const bed=room.getObjectByName('Room_TreatmentBed'),floor=new THREE.Box3().setFromObject(room.getObjectByName('Room_Floor'));
+ assert.ok(Math.abs(new THREE.Box3().setFromObject(bed,true).min.y-floor.max.y)<1e-5,'rubber feet contact floor');
+ // The join anchor inherits the tilted head section: measure actual vertices,
+ // not the transformed local bounding box, for floor contact.
+ const placement=new THREE.Matrix4().compose(new THREE.Vector3(1.6,-.0045,-1.5),new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),THREE.MathUtils.degToRad(-35)),new THREE.Vector3(1,1,1));
+ const material=bed.material;material.side=THREE.DoubleSide;
+ for(const x of [-.235,.235])for(const z of [-.57,.57]){
+  // Cast horizontally through the previously empty 30 mm vertical interval.
+  const local=new THREE.Vector3(x-.08,.115,z),start=local.applyMatrix4(placement);
+  const direction=new THREE.Vector3(1,0,0).transformDirection(placement);
+  assert.ok(new THREE.Raycaster(start,direction,0,.16).intersectObject(bed).length>=2,`structural bridge at ${x},${z}`);
+ }
+ disposeAtelierGroup(room);
+});
+
+test('glazing reaches its floor channel, rear wall connection and supported head channel',async()=>{
+ const room=await loadRoom();room.updateMatrixWorld(true);
+ const glass=new THREE.Box3().setFromObject(room.getObjectByName('Room_Glass')),frame=room.getObjectByName('Room_GlassFrame');
+ assert.ok(frame?.isMesh,'physical floor, rear and head channels');
+ assert.ok(glass.min.y<.03&&glass.max.y>2.97,'pane captured in bottom and head channels');
+ assert.ok(glass.min.z< -2.965,'rear pane edge enters timber connection');
+ const bound=new THREE.Box3().setFromObject(frame);assert.ok(bound.min.y<=-.0025+1e-5&&bound.max.y>=3,'frame contacts pour and wall head');
+ disposeAtelierGroup(room);
+});
+
+test('perimeter ceiling details and floor uplights clear overhead inspection and remain independently bounded',async()=>{
+ const room=prepareTreatmentRoom(await loadRoom()),camera=new THREE.PerspectiveCamera();
+ for(const name of ['Room_CeilingRear','Room_CeilingRight','Room_FloorLampLeft','Room_FloorLampRight'])assert.ok(room.getObjectByName(name)?.isMesh,`${name}: authored fixture geometry`);
+ camera.position.set(0,4.4,0);camera.updateMatrixWorld();updateTreatmentView(room,camera);
+ for(const name of ['Room_CeilingRear','Room_CeilingRight'])assert.equal(room.getObjectByName(name).visible,false,`${name}: overhead cutaway`);
+ for(const name of ['Room_FloorLampLeft','Room_FloorLampRight']){
+  const fixture=room.getObjectByName(name);assert.ok(fixture.userData.occlusionBounds,'cache individual bounds');
+  assert.ok(Math.abs(new THREE.Box3().setFromObject(fixture).min.y+.0025)<1e-5,'lamp base meets floor');
+ }
+ for(const height of [2.2,3.5,4.4])for(let degrees=0;degrees<360;degrees+=15){const angle=THREE.MathUtils.degToRad(degrees);checkClear(room,[Math.sin(angle)*3.5,height,Math.cos(angle)*3.5],[0,.85,0],`elevated ${height}/${degrees}`);}
+ disposeAtelierGroup(room);
 });

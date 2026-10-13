@@ -2,7 +2,8 @@
 Run: Blender --background --threads 2 --python create_room.py
 Blender Z up exports to glTF/Three Y up. Metres, body at world origin.
 The maintained scene contains four semantic walls, continuous floor, original bench,
-architectural glass and three original sculptural plants. All illumination is static.
+attached architectural glass, three plants and shielded indirect fixtures.
+All room illumination is static; body lighting remains independent.
 """
 import bpy, math, os, json, time, hashlib, datetime, sys
 from mathutils import Vector
@@ -69,6 +70,25 @@ def finish(o,name,m,bev=0):
 def box(name,loc,size,m,bev=.008):
  bpy.ops.mesh.primitive_cube_add(size=1,location=loc);o=bpy.context.object;o.dimensions=size;bpy.ops.object.transform_apply(location=False,rotation=False,scale=True);return finish(o,name,m,bev)
 
+graphite=mat('Quiet graphite fixture and glazing metal',(.065,.073,.071),.52,.35)
+fixture_shell=mat('Warm mineral powder-coated uplight housing',(.63,.61,.55),.62,.15)
+emitter=mat('Recessed warm indirect emitter',(.78,.72,.56),.65)
+p=emitter.node_tree.nodes.get('Principled BSDF');p.inputs['Emission Color'].default_value=(1,.89,.70,1);p.inputs['Emission Strength'].default_value=.7
+def cylinder(name,a,b,r,material,vertices=24,bevel=.003):
+ a,b=Vector(a),Vector(b);d=b-a
+ bpy.ops.mesh.primitive_cylinder_add(vertices=vertices,radius=r,depth=d.length,location=(a+b)/2)
+ o=bpy.context.object;o.rotation_mode='QUATERNION';o.rotation_quaternion=d.to_track_quat('Z','Y');return finish(o,name,material,bevel)
+def ring(name,center,outer,inner,height,material):
+ # A real annular rim shields the recessed horizontal emitter from side views.
+ x,y,z=center;n=40;verts=[(x+r*math.cos(i*2*math.pi/n),y+r*math.sin(i*2*math.pi/n),z+h) for r,h in [(outer,-height/2),(outer,height/2),(inner,height/2),(inner,-height/2)] for i in range(n)]
+ faces=[]
+ for k in range(4):
+  for i in range(n):faces.append((k*n+i,k*n+(i+1)%n,((k+1)%4)*n+(i+1)%n,((k+1)%4)*n+i))
+ mesh=bpy.data.meshes.new(name);mesh.from_pydata(verts,[],faces);mesh.update();o=bpy.data.objects.new(name,mesh);bpy.context.collection.objects.link(o);return finish(o,name,material)
+def upward_disc(name,center,radius):
+ x,y,z=center;n=40;verts=[(x,y,z)]+[(x+radius*math.cos(i*2*math.pi/n),y+radius*math.sin(i*2*math.pi/n),z) for i in range(n)]
+ mesh=bpy.data.meshes.new(name);mesh.from_pydata(verts,[],[(0,i+1,(i+1)%n+1) for i in range(n)]);mesh.update();o=bpy.data.objects.new(name,mesh);bpy.context.collection.objects.link(o);return finish(o,name,emitter)
+
 # Four semantic walls remain independently switchable. Actual glazed side
 # apertures admit diagonal sunlight; their structure belongs to the left wall.
 box('Continuous poured concrete back wall',(0,3.053,1.5),(6.14,.14,3),wall,.006)
@@ -99,7 +119,13 @@ for x in [-2.89,2.89]:box('Front timber corner post',(x,-2.72,1.50),(.14,.14,3.0
 current='Room_Floor'
 box('Continuous textured concrete floor',(0,0,-.035),(12,12,.065),stone,.002)
 current='Room_Glass'
-box('Low iron architectural glass return',(.40,2.23,1.425),(.012,1.32,2.75),clear_glass,.003)
+box('Low iron architectural glass return',(.40,2.274,1.503),(.012,1.408,2.95),clear_glass,.003)
+# Captured glazing: rear channel overlaps the timber backing; base channel
+# starts at the pour and the head channel meets the bounded ceiling return.
+current='Room_GlassFrame'
+box('Glass floor channel',(.4,2.274,.01875),(.036,1.43,.0425),graphite,.002)
+box('Glass rear attachment channel',(.4,2.972,1.5),(.036,.04,3),graphite,.002)
+box('Glass supported head channel',(.4,2.274,2.99),(.036,1.43,.04),graphite,.002)
 current='Room_WindowGlass'
 for y,width in [(-1.65,1.43),(.07,1.52)]:
  box('Low iron full-height window glass',(-3.055,y,1.47),(.012,width,2.69),clear_glass,.002)
@@ -169,14 +195,55 @@ current='Room_TreatmentBed';before=set(bpy.context.scene.objects)
 bpy.ops.import_scene.gltf(filepath=os.path.join(HERE,'..','atelier','treatment-bed.glb'))
 # Stable join anchor is required for repeatable transforms and checkpoint UVs.
 bedobjects=sorted(set(bpy.context.scene.objects)-before,key=lambda o:o.name)
-root=bpy.data.objects.new('Treatment bed placement',None);bpy.context.collection.objects.link(root);root.location=(1.6,1.5,0);root.rotation_euler.z=math.radians(-35)
+root=bpy.data.objects.new('Treatment bed placement',None);bpy.context.collection.objects.link(root);root.location=(1.6,1.5,-.0045);root.rotation_euler.z=math.radians(-35)
 for o in bedobjects:
  if o.parent is None:o.parent=root
  if o.type in {'MESH','CURVE'}:groups.setdefault(current,[]).append(o)
 
+# The original asset's outer legs end at .13 m, above cross feet ending at
+# .10 m. Four matching spigots overlap both, keeping every original face.
+for x in [-.235,.235]:
+ for y in [-.57,.57]:
+  o=cylinder('Trestle structural foot spigot',(x,y,.085),(x,y,.145),.024,graphite,24,.002);o.parent=root
+
+# Bounded perimeter ceiling returns are supported continuously by the walls.
+# They provide honest mounting/reflecting surfaces without roofing the body.
+current='Room_CeilingRear'
+box('Rear concrete ceiling return',(0,2.835,3.015),(6.14,.58,.09),wall,.004)
+box('Glazing head ceiling support',(.4,2.274,3.035),(.12,1.43,.13),wall,.004)
+current='Room_CeilingRight'
+box('Right concrete ceiling return',(2.835,.14,3.015),(.58,5.42,.09),wall,.004)
+for group,center,along in [('Room_CeilingRear',(-1.2,2.76,2.78),'x'),('Room_CeilingRight',(2.76,.40,2.78),'y')]:
+ current=group;x,y,z=center;length=1.05;width=.13
+ size=(length,width,.065) if along=='x' else (width,length,.065)
+ box('Closed underside of baffled ceiling uplight',center,size,fixture_shell,.008)
+ # Two rods attach through the soffit underside, with small mounting rosettes.
+ for offset in [-.38,.38]:
+  a=(x+offset,y,z+.02) if along=='x' else (x,y+offset,z+.02)
+  cylinder('Ceiling uplight support rod',a,(a[0],a[1],2.99),.009,graphite,16,.001)
+  cylinder('Flush soffit mounting rosette',(a[0],a[1],2.963),(a[0],a[1],2.978),.028,graphite,24,.001)
+ # Downward faces are opaque. Emitter is a single upward-facing recessed quad.
+ for offset in [-1,1]:
+  loc=(x,y+offset*.059,z+.042) if along=='x' else (x+offset*.059,y,z+.042)
+  box('Raised ceiling emitter side baffle',loc,(length,.012,.055) if along=='x' else (.012,length,.055),fixture_shell,.002)
+ for offset in [-1,1]:
+  loc=(x+offset*.519,y,z+.042) if along=='x' else (x,y+offset*.519,z+.042)
+  box('Ceiling emitter end shield',loc,(.012,width,.055) if along=='x' else (width,.012,.055),fixture_shell,.002)
+ bpy.ops.mesh.primitive_plane_add(size=1,location=(x,y,z+.034));o=bpy.context.object;o.scale=(.98,.095,1) if along=='x' else (.095,.98,1);bpy.ops.object.transform_apply(location=False,rotation=False,scale=True);finish(o,'Upward concealed ceiling emitter',emitter)
+
+floor_lamps=[('Room_FloorLampLeft',-2.55,2.74,1.82),('Room_FloorLampRight',2.64,-.46,1.64)]
+for group,x,y,height in floor_lamps:
+ current=group
+ cylinder('Weighted floor uplight base',(x,y,-.0025),(x,y,.0395),.20,graphite,40,.004)
+ cylinder('Floor uplight slender stem',(x,y,.025),(x,y,height-.025),.016,graphite,24,.002)
+ cylinder('Floor uplight closed underside',(x,y,height-.035),(x,y,height-.008),.18,fixture_shell,40,.005)
+ ring('Deep upward-only floor lamp rim',(x,y,height+.018),.18,.158,.065,fixture_shell)
+ upward_disc('Upward recessed floor lamp emitter',(x,y,height-.006),.152)
+
 # Directional window daylight and restrained architectural cool spill are baked once.
 scene=bpy.context.scene;scene.render.engine='CYCLES';scene.cycles.samples=32;scene.cycles.use_denoising=True
 scene.cycles.device='CPU';scene.cycles.max_bounces=6;scene.cycles.diffuse_bounces=4;scene.cycles.transmission_bounces=6
+scene.cycles.seed=0
 world=bpy.data.worlds.new('Neutral studio ambient');scene.world=world;world.use_nodes=True;world.node_tree.nodes['Background'].inputs[0].default_value=(.80,.82,.84,1);world.node_tree.nodes['Background'].inputs[1].default_value=.22
 def area(name,loc,target,power,size,color=(1,1,1),size_y=None):
  d=bpy.data.lights.new(name,'AREA');d.energy=power*.20;d.color=color;d.shape='RECTANGLE';d.size=size;d.size_y=size_y or size;o=bpy.data.objects.new(name,d);bpy.context.collection.objects.link(o);o.location=loc;o.rotation_euler=(Vector(target)-o.location).to_track_quat('-Z','Y').to_euler()
@@ -188,9 +255,30 @@ d=bpy.data.lights.new('Long diagonal window sunlight','SUN');d.energy=1.55;d.ang
 o=bpy.data.objects.new(d.name,d);bpy.context.collection.objects.link(o);o.rotation_euler=(Vector((2,2,.0))-Vector((-6,-4,6))).to_track_quat('-Z','Y').to_euler()
 area('Rear ice-jade reveal spill',(.24,2.84,1.5),(-.30,2.97,1.5),10,.065,(.43,.83,.87),2.6)
 area('Right ice-jade reveal spill',(2.84,1.8,.16),(2.4,1.8,.02),8,2.1,(.42,.81,.86),.05)
+# Very low-power warm accents, directed upward into the perimeter returns.
+# Existing daylight, ambient, exposure and every runtime body light are intact.
+area('Rear ceiling concealed uplight',(-1.2,2.76,2.819),(-1.2,2.76,3.0),10,.9,(1,.89,.70),.085)
+area('Right ceiling concealed uplight',(2.76,.4,2.819),(2.76,.4,3.0),10,.085,(1,.89,.70),.9)
+for group,x,y,height in floor_lamps:area(group+' shielded uplight',(x,y,height-.002),(x,y,3.0),5,.20,(1,.89,.70),.20)
 scene.view_settings.view_transform='Standard';scene.view_settings.look='None';scene.view_settings.exposure=0;scene.view_settings.gamma=1
 scene.render.resolution_x=1200;scene.render.resolution_y=800;scene.render.resolution_percentage=100
 camd=bpy.data.cameras.new('Acceptance camera');cam=bpy.data.objects.new('Acceptance camera',camd);bpy.context.collection.objects.link(cam);cam.location=(.65,-4.4,1.08);cam.rotation_euler=(Vector((0,0,.85))-cam.location).to_track_quat('-Z','Y').to_euler();camd.lens=32;scene.camera=cam
+
+# Check real emitter normals and shielding before semantic merging removes
+# component identity. Downward rays must hit the fixture itself, within 30 cm.
+bpy.context.view_layer.update();depsgraph=bpy.context.evaluated_depsgraph_get();shielding=[]
+for group in ['Room_CeilingRear','Room_CeilingRight','Room_FloorLampLeft','Room_FloorLampRight']:
+ for o in groups[group]:
+  if not o.name.startswith(('Upward concealed','Upward recessed')):continue
+  assert all((o.matrix_world.to_3x3()@p.normal).z>.99 for p in o.data.polygons), 'Emitter must face upward'
+  center=sum((o.matrix_world@v.co for v in o.data.vertices),Vector())/len(o.data.vertices)
+  for elevation in [-5,-30,-60,-89]:
+   for azimuth in range(0,360,45):
+    e,a=math.radians(elevation),math.radians(azimuth);direction=Vector((math.cos(e)*math.cos(a),math.cos(e)*math.sin(a),math.sin(e)))
+    hit,loc,normal,index,ob,matrix=scene.ray_cast(depsgraph,center-Vector((0,0,.0001)),direction,distance=.30)
+    assert hit and ob in groups[group] and ob!=o, group+' must shield downward emitter rays'
+  shielding.append({'group':group,'emitterNormal':[0,0,1],'downwardShieldRays':32})
+print('FIXTURE_SHIELDING_VERIFIED',json.dumps(shielding),flush=True)
 
 # Apply geometry then merge by semantic group; glass retains a physical material.
 for name,objs in groups.items():
@@ -210,6 +298,7 @@ for name,objs in groups.items():
 authoring_triangles=sum(sum(len(p.vertices)-2 for p in o.data.polygons) for o in groups.values())
 print('AUTHORING_TRIANGLES',authoring_triangles,flush=True)
 assert authoring_triangles<=75000, 'Room exceeds the agreed triangle budget'
+bpy.context.preferences.filepaths.save_version=0;bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUTPUT,'authoring.blend'))
 if not SKIP_PREVIEWS:
  scene.render.filepath=os.path.join(OUTPUT,'preview.png');bpy.ops.render.render(write_still=True)
  print('PREVIEW_READY',flush=True)
@@ -287,7 +376,7 @@ points=[o.matrix_world@v.co for o in groups.values() for v in o.data.vertices]
 span=[max(p[i] for p in points)-min(p[i] for p in points) for i in range(3)]
 dimensions=[round(span[i],6) for i in [0,2,1]]
 provenance={
- 'schemaVersion':1,'asset':'Inkform zen cyberpunk studio','authoringVersion':'6.0.0',
+ 'schemaVersion':1,'asset':'Inkform zen cyberpunk studio','authoringVersion':'7.0.0',
  'generatedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),
  'software':'Blender '+bpy.app.version_string,'license':'CC0-1.0',
  'runtimeFiles':[file_record(os.path.join(HERE,n)) for n in ['treatment-room.glb','room-lighting.jpg','floor-lighting.jpg']],
@@ -296,7 +385,9 @@ provenance={
  'budgets':{'maxTriangles':75000,'maxMainDrawCalls':16,'maxGlbBytes':3000000,'maxDecodedTextureBytes':67108864,'maxCompressedImageBytes':3000000},
  'materials':{'opaque':'Shared baked radiance; KHR_materials_unlit except floor','glass':'Room_Glass and Room_WindowGlass use KHR_materials_transmission and KHR_materials_ior; retain physical material at runtime'},
  'bake':{'device':'CPU','samples':128,'denoiser':'OpenImageDenoise','roomAtlas':[2048,2048],'floorAtlas':[1024,1024],'encoding':'sRGB JPEG','components':['diffuse direct','diffuse indirect','albedo','integrated architectural emission']},
- 'sceneContent':['four semantic mineral concrete walls; left wall has two tall glazed apertures','warm rear-right vertical timber field and short return with two restrained ice-jade light reveals','one continuous textured 12 by 12 metre concrete floor without panel joints','one unchanged original graphite upholstered tattoo bench','one clear architectural glass return plus two window panes','three original sculptural perimeter plants: broadleaf, fine arching palm, upright evergreen in mineral vessels'],
+ 'sceneContent':['four semantic mineral concrete walls; left wall has two tall glazed apertures','warm rear-right vertical timber field and short return with two restrained ice-jade light reveals','one continuous textured 12 by 12 metre concrete floor without panel joints','original graphite upholstered tattoo bench grounded by 4.5 mm with four structural foot spigots','one captured architectural glass return with floor, rear and head channels plus two window panes','three original sculptural perimeter plants: broadleaf, fine arching palm, upright evergreen in mineral vessels','two baffled ceiling uplights on wall-supported perimeter ceiling returns','two shielded floor uplights with weighted bases and slender stems'],
+ 'physicalChecks':{'floorTopMetres':-.0025,'benchGroundingDeltaMetres':-.0045,'sourceLegGapMetres':.03,'addedSpigotSpanMetres':[.085,.145],'glassCapturedBy':['floor channel','rear timber connection','supported head channel'],'fixtureShielding':shielding},
+ 'lightingBaseline':{'sunEnergy':1.55,'worldStrength':.22,'exposure':0,'daylightAreaWatts':[360,60,26],'existingRevealAreaWatts':[2,1.6],'addedIndirectAreaWatts':[2,2,1,1],'runtimeBodyLighting':'unchanged'},
  'sources':[dict(file_record(os.path.join(HERE,'..','atelier','treatment-bed.glb')),license='CC0-1.0',origin='Original locally authored furniture',authoringFile='../atelier/create_assets.py',authoringSource=file_record(os.path.join(HERE,'..','atelier','create_assets.py')))],
  'externalAssets':[],'externalAssetStatement':'No downloaded models, photos, textures, paid APIs or other external assets used. All remaining geometry and procedural materials are original local authoring.'
 }

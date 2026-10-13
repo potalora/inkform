@@ -6,6 +6,16 @@ Try the [public beta](https://inkform-beta.pages.dev/studio/).
 
 This README was created by AI. A human-written version is coming.
 
+## Screenshots
+
+Tattoo placement with an original geometric demo design.
+
+![Tattoo placement and size controls](docs/images/placement.jpg)
+
+Body proportions and the studio view.
+
+![Body reference controls in the studio](docs/images/body-controls.jpg)
+
 ## Run locally
 
 Requires **Git** and **Node.js 24 or newer**, including npm. Install and start Inkform with one command:

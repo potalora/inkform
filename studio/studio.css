@@ -77,7 +77,6 @@ select option { background: var(--panel); color: var(--text); }
 #save-alternative { margin-left: auto; }
 #notes-open { width: 100%; justify-content: flex-start; gap: 10px; margin-top: 4px; border-top: 1px solid var(--line); border-radius: 0; padding-top: 12px; padding-bottom: 8px; font-size: 14px; }
 .brand-mark { font-family: var(--sans); font-size: 20px; color: var(--accent); margin-left: 8px; vertical-align: middle; }
-.brand-caption { font-size: 12px; line-height: 1.55; color: var(--muted); border-left: 1px solid var(--line); padding-left: 20px; }
 .masthead {
   position: absolute; top: max(var(--workspace-gap),env(safe-area-inset-top)); left: var(--workspace-gap); right: var(--workspace-gap);
   height: var(--header-height); padding: 0 16px;
@@ -353,7 +352,6 @@ dialog ol { padding-left: 20px; }
   .masthead { padding: 3px 10px; gap: 8px; }
   .brand { font-size: 27px; letter-spacing: -.8px; }
   .brand-mark { font-size: 16px; margin-left: 5px; }
-  .brand-caption { display: none; }
   .header-right { gap: 0; }
   .save-image { min-width: 0; font-size: 13px; padding: 8px 10px; gap: 7px; }
   .save-label-wide { display: none; }

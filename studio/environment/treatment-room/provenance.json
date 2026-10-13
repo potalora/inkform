@@ -1,41 +1,41 @@
 {
   "schemaVersion": 1,
   "asset": "Inkform zen cyberpunk studio",
-  "authoringVersion": "6.0.0",
-  "generatedAt": "2026-10-12T12:35:59.936109+00:00",
+  "authoringVersion": "7.0.0",
+  "generatedAt": "2026-10-13T05:08:03.201420+00:00",
   "software": "Blender 5.2.1 LTS",
   "license": "CC0-1.0",
   "runtimeFiles": [
     {
       "file": "treatment-room.glb",
-      "bytes": 2458412,
-      "sha256": "eae3d17487355301b63a70e847ff808a7c12bfcb410f505b1dd7745d819d9e55"
+      "bytes": 2812124,
+      "sha256": "e468597fe8023dc78e62388e87053171a3bc48f546e730c7b93924913fcc208d"
     },
     {
       "file": "room-lighting.jpg",
-      "bytes": 684828,
-      "sha256": "4cfbf45ca03fd5705656763432f5823798c4d6a49615aacbd530d3da3a71bc93"
+      "bytes": 705894,
+      "sha256": "52d7c038ab943b1bb05428e86ee1f3c2a17860641eb489a26a9c196202f98496"
     },
     {
       "file": "floor-lighting.jpg",
-      "bytes": 43888,
-      "sha256": "da2060333739331708e3e0fae6970d1646355937d7088a99edb97614e8df0a2c"
+      "bytes": 44298,
+      "sha256": "b12b717635aca0912f816b292fa5cf870621fb115c61622df0889e5d424b8ebb"
     }
   ],
   "authoringScript": {
     "file": "create_room.py",
-    "bytes": 28216,
-    "sha256": "bf5371faaa0933aaeebfd1d9a2108bdfdafee255a2dd79d6bb43e25d67430090"
+    "bytes": 35673,
+    "sha256": "b907b2bd0108f7d0537096769e77c0c37309832ef2b81846072011af174bc9f1"
   },
   "geometry": {
-    "triangles": 53352,
-    "meshes": 11,
-    "drawCalls": 11,
+    "triangles": 64436,
+    "meshes": 16,
+    "drawCalls": 16,
     "units": "metres",
     "coordinateSystem": "glTF Y up",
     "dimensionsMetres": [
       12.0,
-      3.0675,
+      3.1675,
       12.0
     ]
   },
@@ -74,10 +74,85 @@
     "four semantic mineral concrete walls; left wall has two tall glazed apertures",
     "warm rear-right vertical timber field and short return with two restrained ice-jade light reveals",
     "one continuous textured 12 by 12 metre concrete floor without panel joints",
-    "one unchanged original graphite upholstered tattoo bench",
-    "one clear architectural glass return plus two window panes",
-    "three original sculptural perimeter plants: broadleaf, fine arching palm, upright evergreen in mineral vessels"
+    "original graphite upholstered tattoo bench grounded by 4.5 mm with four structural foot spigots",
+    "one captured architectural glass return with floor, rear and head channels plus two window panes",
+    "three original sculptural perimeter plants: broadleaf, fine arching palm, upright evergreen in mineral vessels",
+    "two baffled ceiling uplights on wall-supported perimeter ceiling returns",
+    "two shielded floor uplights with weighted bases and slender stems"
   ],
+  "physicalChecks": {
+    "floorTopMetres": -0.0025,
+    "benchGroundingDeltaMetres": -0.0045,
+    "sourceLegGapMetres": 0.03,
+    "addedSpigotSpanMetres": [
+      0.085,
+      0.145
+    ],
+    "glassCapturedBy": [
+      "floor channel",
+      "rear timber connection",
+      "supported head channel"
+    ],
+    "fixtureShielding": [
+      {
+        "group": "Room_CeilingRear",
+        "emitterNormal": [
+          0,
+          0,
+          1
+        ],
+        "downwardShieldRays": 32
+      },
+      {
+        "group": "Room_CeilingRight",
+        "emitterNormal": [
+          0,
+          0,
+          1
+        ],
+        "downwardShieldRays": 32
+      },
+      {
+        "group": "Room_FloorLampLeft",
+        "emitterNormal": [
+          0,
+          0,
+          1
+        ],
+        "downwardShieldRays": 32
+      },
+      {
+        "group": "Room_FloorLampRight",
+        "emitterNormal": [
+          0,
+          0,
+          1
+        ],
+        "downwardShieldRays": 32
+      }
+    ]
+  },
+  "lightingBaseline": {
+    "sunEnergy": 1.55,
+    "worldStrength": 0.22,
+    "exposure": 0,
+    "daylightAreaWatts": [
+      360,
+      60,
+      26
+    ],
+    "existingRevealAreaWatts": [
+      2,
+      1.6
+    ],
+    "addedIndirectAreaWatts": [
+      2,
+      2,
+      1,
+      1
+    ],
+    "runtimeBodyLighting": "unchanged"
+  },
   "sources": [
     {
       "file": "../atelier/treatment-bed.glb",
