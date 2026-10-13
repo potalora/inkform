@@ -8,9 +8,12 @@ upright evergreen blades. Honed mineral vessels stay understated. Two narrow
 ice-jade reveals and their restrained reflected light provide the cyberpunk
 accent. The working area at the origin stays clear.
 
-The original graphite upholstered tattoo bench retains its exact source,
-geometry and placement. There are no cabinets, worktops, shelves, supplies,
-artwork frames, signage, stool, cart, armrest or task lamp.
+The original graphite upholstered tattoo bench retains every source face and its
+diagonal layout. It is lowered 4.5 mm to meet the pour, and four small graphite
+spigots connect the original outer legs to their cross feet. Two baffled ceiling
+uplights and two sculptural floor uplights add restrained warm indirect light.
+Their emitters face upward inside opaque housings. There are no cabinets,
+worktops, shelves, supplies, artwork frames, signage, stool, cart or armrest.
 
 ## Rebuild
 
@@ -30,7 +33,8 @@ or bake recipe changes require a full build.
 Launch long builds as an owned detached process with its PID and log recorded;
 inspect the completion marker and outputs before accepting the asset. Do not
 use the running Blender GUI or GPU. `treatment-room.glb` embeds both JPEGs.
-The editable Blender scene, statistics, checkpoint, physical authoring preview
+The editable physical `authoring.blend` and baked `treatment-room.blend`,
+statistics, checkpoint, physical authoring preview
 and exact baked-material preview are under ignored `output/zen-studio/room/`.
 The camera maps to Three `[.65,1.08,4.4]`, looking at `[0,.85,0]`, with a 32 mm
 Blender lens. `provenance.json` is regenerated with current hashes, sizes,
@@ -47,18 +51,30 @@ source licensing, mesh counts, vertex bounds and bake settings.
   so they disappear with those wall cutaways.
 - `Room_Floor` remains one continuous 12×12 m pour, topping y=-0.0025. It
   extends beneath the full camera orbit. The live body shadow stays y=0.001.
-- `Room_TreatmentBed` contains only the unchanged original bench, at the
-  existing approximate x=1.6, z=-1.5 diagonal placement.
-- `Room_Glass` is the thin architectural return beside the timber field.
+- `Room_TreatmentBed` contains the original bench plus four 60 mm structural
+  spigots, overlapping the old leg/cross-foot gap. The placement remains
+  x=1.6, z=-1.5 with -35° yaw; y=-0.0045 grounds its rubber feet.
+- `Room_Glass` is the thin architectural return beside the timber field. Its
+  floor, rear and head channels are `Room_GlassFrame`; the two share one cached
+  occlusion bound and cut away together. A narrow ceiling support above the
+  pane connects its head channel to the rear ceiling return.
   `Room_WindowGlass` contains the two left window panes and follows the left
   wall cutaway. Keep their bounds separate: one combined glass bound would
   unnecessarily hide the return during normal body inspection.
 - `Room_PlantBroadleaf`, `Room_PlantPalm`, `Room_PlantSculptural` each contain
   one original plant plus its mineral vessel. Include each in cached furniture
   occlusion bounds so inspection rays stay clear throughout the orbit.
-- Eleven semantic meshes, each with one material slot. Glass carries
+- `Room_CeilingRear` and `Room_CeilingRight` each contain a narrow concrete
+  ceiling return supported by its wall, plus a rod-mounted, baffled uplight.
+  They follow the associated wall cutaway and hide above camera y=2.65.
+- `Room_FloorLampLeft` and `Room_FloorLampRight` each contain a weighted base
+  touching the pour, slender stem, closed dish underside and raised opaque rim.
+  Their emitters sit below the rim and direct light toward the ceiling returns.
+  Each lamp has its own furniture occlusion bound.
+- Sixteen semantic meshes, each with one material slot. Glass carries
   `bakedRoom:false` and `roomGlass:true`; all others carry `bakedRoom:true`.
-  No ceiling obstructs overhead body inspection.
+  The working area remains open overhead; bounded ceiling details cut away for
+  elevated body inspection.
 
 Opaque nonfloor meshes use `KHR_materials_unlit`. The shared 2048² sRGB JPEG
 contains diffuse direct light, indirect light, albedo and integrated emission,
@@ -70,7 +86,7 @@ once. Dynamic studio lights illuminate the body independently.
 The floor exports as PBR with a 1024² baked base-color atlas. Runtime converts
 it to `MeshBasicMaterial` using the same map/color and `toneMapped=false` so
 live direct lights do not illuminate the bake twice. Static plant, vessel and
-bench contact shadows are in the floor atlas; they remain during an object
+bench and fixture contact shadows are in the floor atlas; they remain during an object
 cutaway. Live body shadow/contact planes remain separate.
 
 Both glass meshes retain authored transmission 1.0, IOR 1.45, roughness 0.065
@@ -94,8 +110,25 @@ Limits remain 75,000 triangles, 16 primary draw calls, 3,000,000 GLB bytes and
 
 Concrete uses original mineral clouding, fine aggregate and shallow pores,
 without panel grids, joints or formwork ties. Original procedural timber grain
-runs vertically. Three plants, their vessels, all architecture and both baked
-lighting atlases are original local authoring. The bench reuses the unchanged
-`../atelier/treatment-bed.glb`, authored in `../atelier/create_assets.py`.
+runs vertically. Three plants, their vessels, fixtures, structural spigots, glazing channels,
+architecture and both baked lighting atlases are original local authoring. The
+bench imports the unchanged `../atelier/treatment-bed.glb`, authored in
+`../atelier/create_assets.py`; contact repairs are explicit in this room recipe.
 Everything is CC0-1.0. No downloaded models, photography, paid APIs or external
 textures are used. See `LICENSE.txt`.
+
+## Physical and lighting checks
+
+The source bench had four 30 mm leg/cross-foot gaps and a 4.5 mm floor gap.
+The former return stopped 76 mm before its rear timber backing and 52.5 mm
+above the pour. Actual GLB regression tests cover the repaired contacts,
+preserved original bench faces and captured glazing. The authoring recipe checks
+32 downward rays per emitter against its own housing before merging meshes.
+The added area sources are only 2 + 2 + 1 + 1 W, aimed upward; original daylight,
+world strength, view exposure and runtime body lights retain their prior values.
+The build uses a fixed Cycles seed. Resource limits remain unchanged, including
+16 primary draw calls; every new mesh is an independently needed cutaway group.
+
+Revision evidence is under ignored `output/room-revision/`: matched physical
+views, source bounds, gap measurements, app views, brightness samples and build
+logs. These demonstrate rendered consistency, not photometric calibration.

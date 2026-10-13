@@ -16,7 +16,7 @@ function ArtworkPanelView({app, snapshot}) {
 
   return <section data-surface-content="artwork">
     <div data-left-content="library">
-      <div className="library-intro"><div><h2>Your artwork</h2><p>A collection to make your own.</p></div></div>
+      <div className="library-intro"><h2>Artwork</h2></div>
       <details className="library-import">
         <summary aria-label="Import artwork">Import</summary>
         <label className="check"><input id="import-existing" type="checkbox" checked={!!ui.importExisting} disabled={ui.blocked}
@@ -48,7 +48,7 @@ function ArtworkPanelView({app, snapshot}) {
               onClick={() => actions.addArtwork(asset.id)}><span aria-hidden="true">+</span></Button>
           </div>
         </article>)}
-        {!assets.length && <p className="empty">{workspace.assets.length ? 'No artwork matches your search. Clear the search to see your library.' : 'Your collection starts here. Import a transparent PNG or WebP above.'}</p>}
+        {!assets.length && <p className="empty">{workspace.assets.length ? 'No matching artwork. Clear the search to show all designs.' : 'No artwork imported. Import a transparent PNG or WebP.'}</p>}
       </div>
     </div>
   </section>;
