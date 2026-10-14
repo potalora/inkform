@@ -6,10 +6,10 @@ import {loadJsx} from './helpers/load-jsx.mjs';
 import {createApplication} from '../studio/application.js';
 import {BODY_DEFAULTS} from '../studio/model.js';
 import {bodyParams} from '../studio/body-controls.js';
-import {BODY_MODELS, SELECTABLE_BODY_MODELS} from '../studio/model-catalog.js';
+import {BODY_MODELS, resolveBodyModel, SELECTABLE_BODY_MODELS} from '../studio/model-catalog.js';
 import {SKIN_TONES} from '../studio/skin-tones.js';
 
-const {BodyPanel} = await loadJsx(new URL('../studio/ui/body-panel.jsx', import.meta.url));
+const {BodyPanel, bodySourceItems, anatomyItems} = await loadJsx(new URL('../studio/ui/body-panel.jsx', import.meta.url));
 const params = bodyParams.map(([id]) => id);
 
 function study(body = {}) {
@@ -45,12 +45,13 @@ function assertHidden(html, id, expected) {
   assert.equal(hasAttribute(element(html, id).opening, 'hidden'), expected, `#${id} hidden`);
 }
 
-function options(html, id) {
-  return [...element(html, id).content.matchAll(/<option\b([^>]*)>(.*?)<\/option>/g)].map(match => ({
-    value: /\bvalue="([^"]*)"/.exec(match[1])?.[1],
-    selected: hasAttribute(`<option${match[1]}>`, 'selected'),
-    disabled: hasAttribute(`<option${match[1]}>`, 'disabled'), text: match[2],
-  }));
+function assertSelect(html, id, name, selectedLabel, disabled) {
+  const {opening, content} = element(html, id);
+  assert.match(opening, /^<button\b/);
+  assert.ok(opening.includes('role="combobox"'), `#${id} exposes its select role`);
+  assert.ok(opening.includes(`aria-label="${name}"`), `#${id} has its own accessible name`);
+  assert.ok(content.includes(`>${selectedLabel}</span>`), `#${id} displays its selected label`);
+  assertDisabled(html, id, disabled);
 }
 
 function assertShapeWrappers(html, hidden) {
@@ -70,12 +71,12 @@ function assertToneButtons(html, disabled) {
 
 test('real MHR disables unsupported proportions and its single neutral anatomy', () => {
   const saved = study({bodyModelId: 'mhr-v1'}), before = structuredClone(saved), html = render(saved);
-  assertDisabled(html, 'body', true);
-  assert.deepEqual(options(html, 'body'), [{value: 'male', selected: true, disabled: false, text: 'Neutral reference'}]);
+  assertSelect(html, 'body', 'Anatomy model', 'Neutral reference', true);
+  assert.deepEqual(anatomyItems(resolveBodyModel(saved.body)), [{value: 'male', label: 'Neutral reference'}]);
   for (const id of [...params, 'body-profile', 'reset-body']) assertDisabled(html, id, true);
   assertHidden(html, 'body-fixed-note', false);
   assertHidden(html, 'body-shape-hint', true);
-  assert.equal(element(html, 'body-model-source').content, BODY_MODELS['mhr-v1'].source);
+  assert.equal(element(html, 'body-model-source').content, 'Meta MHR');
   assertShapeWrappers(html, true);
   assert.deepEqual(saved, before, 'Rendering a fixed model does not normalize saved proportions');
 });
@@ -94,10 +95,10 @@ test('source-colored Drummyfish disables every tone editor and explains its fixe
 });
 
 test('MakeHuman restores both anatomies, editable proportions and labeled range bounds', () => {
-  const html = render(study({body: 'female'}));
-  assertDisabled(html, 'body', false);
-  assert.deepEqual(options(html, 'body').map(({value, selected}) => ({value, selected})), [
-    {value: 'male', selected: false}, {value: 'female', selected: true},
+  const saved = study({body: 'female'}), html = render(saved);
+  assertSelect(html, 'body', 'Anatomy model', 'Female', false);
+  assert.deepEqual(anatomyItems(resolveBodyModel(saved.body)), [
+    {value: 'male', label: 'Male'}, {value: 'female', label: 'Female'},
   ]);
   for (const [id, label, min, max, step] of bodyParams) {
     assertDisabled(html, id, false);
@@ -115,7 +116,7 @@ test('MakeHuman restores both anatomies, editable proportions and labeled range 
 
 test('blocked application snapshots disable each body editing control during conversion', () => {
   const html = render(study(), {blocked: true});
-  for (const id of ['body-model', 'body', ...params, 'body-profile', 'reset-body', 'skin', 'skin-color', 'skin-hex', 'lighting', 'render-quality', 'raytrace']) {
+  for (const id of ['body-model', 'body', ...params, 'body-profile', 'reset-body', 'skin', 'skin-color', 'skin-hex', 'raytrace']) {
     assertDisabled(html, id, true);
   }
   assertToneButtons(html, true);
@@ -134,22 +135,25 @@ test('startup query selects Body through the real application snapshot without a
   }
 });
 
-test('retired sources are selected disabled options only in their original saved studies', () => {
+test('retired sources are selected disabled choices only in their original saved studies', () => {
   for (const bodyModelId of ['drummyfish-v1', 'atelier-v1']) {
     const saved = study({bodyModelId, clothing: true, hair: true}), before = structuredClone(saved), html = render(saved);
-    assert.deepEqual(options(html, 'body-model').find(option => option.value === bodyModelId), {
-      value: bodyModelId, selected: true, disabled: true, text: `${BODY_MODELS[bodyModelId].label} · saved reference`,
+    const label = `${BODY_MODELS[bodyModelId].label} · saved reference`;
+    assert.deepEqual(bodySourceItems(resolveBodyModel(saved.body)).find(item => item.value === bodyModelId), {
+      value: bodyModelId, label, disabled: true,
     });
-    assertDisabled(html, 'body-model', false);
+    assertSelect(html, 'body-model', 'Body source', label, false);
     assertHidden(html, 'body-legacy-note', false);
     const note = element(html, 'body-legacy-note').content;
-    assert.match(note, /kept for saved studies/);
-    if (bodyModelId === 'drummyfish-v1') assert.match(note, /original texture includes hair and underwear/);
+    assert.match(note, /Saved reference/);
+    assert.match(note, /original study stays unchanged/);
+    if (bodyModelId === 'drummyfish-v1') assert.match(note, /Hair and underwear are part of this body/);
     else assert.doesNotMatch(note, /hair|underwear/);
     for (const id of ['clothing', 'hair', 'hair-control']) assert.ok(!html.includes(`id="${id}"`));
     assert.deepEqual(saved, before, 'Displaying an older study does not rewrite it');
   }
-  const html = render(study()), sources = options(html, 'body-model');
+  const saved = study(), model = resolveBodyModel(saved.body), html = render(saved), sources = bodySourceItems(model);
+  assertSelect(html, 'body-model', 'Body source', model.label, false);
   assert.ok(sources.every(option => !['drummyfish-v1', 'atelier-v1'].includes(option.value)));
   assert.deepEqual(sources.map(option => option.value), SELECTABLE_BODY_MODELS.map(source => source.id));
   assertHidden(html, 'body-legacy-note', true);
@@ -166,7 +170,7 @@ test('saved out-of-range refinements remain intact with an explanation instead o
 test('ray-trace controls expose renderer capability and active preview status', () => {
   const fallback = render(study(), {stats: {renderer: 'WebGL'}});
   assertDisabled(fallback, 'raytrace', true);
-  assert.match(element(fallback, 'raytrace').opening, /title="Requires WebGPU/);
+  assert.match(element(fallback, 'raytrace').opening, /title="Refined previews are not available in this browser/);
   assertHidden(fallback, 'cancel-raytrace', true);
   const active = render(study(), {preview: {phase: 'rendering', samples: 16}});
   assertDisabled(active, 'raytrace', true);
@@ -174,4 +178,22 @@ test('ray-trace controls expose renderer capability and active preview status', 
   assert.match(element(active, 'raytrace-announcement').opening, /role="status"/);
   assert.match(element(active, 'raytrace-status').content, /16 samples/);
   assert.equal(element(active, 'cancel-raytrace').content, 'Cancel');
+  const complete = render(study(), {preview: {phase: 'complete', samples: 32, denoised: true}});
+  assertHidden(complete, 'cancel-raytrace', false);
+  assert.equal(element(complete, 'cancel-raytrace').content, 'Back to editing');
+  assert.match(element(complete, 'raytrace-status').content, /Preview ready\. Export image to save it\./);
+  const failed = render(study(), {preview: {phase: 'error', message: 'Preview failed'}});
+  assertDisabled(failed, 'raytrace', false);
+  assert.match(element(failed, 'raytrace-status').content, /Preview failed/);
+});
+
+test('Body offers a direct refined preview without rendering settings or accuracy disclosures', () => {
+  const html = render(study());
+  assert.doesNotMatch(html, /id="(?:lighting|render-quality|render-info)"/);
+  assert.doesNotMatch(html, /Lighting and quality|Representation and accuracy|light transport|rendering resolution/);
+  assert.equal(element(html, 'raytrace').content, 'Refine preview');
+  assertDisabled(html, 'raytrace', false);
+  assertHidden(html, 'raytrace-status', true);
+  assert.ok(html.includes('https://skintone.google/get-started'), 'The skin-tone source remains available');
+  assert.ok(html.includes('https://creativecommons.org/licenses/by/4.0/'), 'The compact attribution retains its license link');
 });

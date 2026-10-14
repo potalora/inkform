@@ -5,7 +5,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {loadJsx} from './helpers/load-jsx.mjs';
 import {BODY_DEFAULTS} from '../studio/model.js';
 
-const [{CompositionPanel}, {ArtworkPanel}, {BodyPanel}, {RangeControl, closeMenuThen}, {StudyCard}] = await Promise.all([
+const [{CompositionPanel}, {ArtworkPanel}, {BodyPanel}, {RangeControl, closeMenuThen}, {StudyCard, Header}] = await Promise.all([
   'composition-panel', 'artwork-panel', 'body-panel', 'primitives', 'main',
 ].map(name => loadJsx(new URL(`../studio/ui/${name}.jsx`, import.meta.url))));
 
@@ -99,6 +99,16 @@ test('range controls expose formatted physical units and percentages to assistiv
   }
 });
 
+test('skin swatches keep their own grid layout without the default secondary-button shell', () => {
+  const html = renderToStaticMarkup(React.createElement(BodyPanel, fixture()));
+  const swatches = [...html.matchAll(/<button\b[^>]*data-tone="[^"]+"[^>]*>/g)].map(([tag]) => tag);
+  assert.equal(swatches.length, 10);
+  for (const tag of swatches) {
+    assert.doesNotMatch(tag, /class="[^"]*\bsecondary\b/, 'Plain controls must not inherit secondary button margin, border and full width');
+    assert.match(tag, /aria-label="Monk \d+"/);
+  }
+});
+
 test('closing disclosure restores its summary before the action takes focus', () => {
   const calls = [];
   const summary = {focus() { calls.push('summary focus'); }};
@@ -130,7 +140,7 @@ test('sample progress changes visually without changing the phase live announcem
   assert.match(next, /id="raytrace-announcement" role="status" aria-live="polite"/);
   assert.match(announcement(previewMarkup({phase: 'denoising'})), /Finishing/);
   assert.match(announcement(previewMarkup({phase: 'error', message: 'Preview failed'})), /Preview failed/);
-  assert.match(announcement(previewMarkup({phase: 'complete', samples: 32, denoised: true})), /Denoised ray-traced preview · 32 samples/);
+  assert.match(announcement(previewMarkup({phase: 'complete', samples: 32, denoised: true})), /Preview ready. Export image to save it./);
 });
 
 
@@ -145,7 +155,7 @@ test('selected tattoo placement and width stay ahead of a long composition list'
   const html = renderToStaticMarkup(React.createElement(CompositionPanel, props));
   assert.ok(html.indexOf('id="region"') < html.indexOf('id="layers"'));
   assert.ok(html.indexOf('id="width"') < html.indexOf('id="layers"'));
-  assert.match(html, /id="selection-title">Design 24/);
+  assert.match(html, /id="selection-title"[^>]*>Design 24/);
   assert.equal((html.match(/data-select="layer-/g) || []).length, 24);
   for (const id of ['place-on-body', 'duplicate-layers', 'remove-layers', 'lock-selection', 'unlock-selection', 'browse-art']) {
     assert.ok(html.includes(`id="${id}"`), `${id} remains available`);
@@ -203,4 +213,56 @@ test('study save indicator distinguishes confirmed saves, pending work and error
     assert.match(html, /aria-label="Current study" title="Study"/);
     if (state === 'error') assert.match(html, /color:var\(--danger\)/);
   }
+});
+
+test('compact study capsule retains secondary study actions and readable save state', () => {
+  const props = withUI(fixture(), {saveLabel: 'Saved to workspace', saveError: false, retry: {hidden: true, text: 'Retry save'}});
+  const html = renderToStaticMarkup(React.createElement(StudyCard, props));
+  assert.doesNotMatch(html, /class="brand"/, 'The compact capsule is reserved for study identity and actions');
+  for (const id of ['project-select', 'undo', 'redo', 'new-project', 'rename-project', 'duplicate-project', 'delete-project', 'data-open', 'notes-open']) {
+    assert.equal((html.match(new RegExp(`id="${id}"`, 'g')) || []).length, 1, `${id} remains available exactly once`);
+  }
+  assert.match(html, /class="save-status-short" aria-hidden="true">Saved</);
+  assert.match(html, /Saved to workspace/);
+  assert.doesNotMatch(html, /id="help-open"/, 'Help is grouped under Workspace rather than repeated in study actions');
+});
+
+test('artwork offers direct import and separate preview/add targets without a duplicate heading', () => {
+  const props = fixture();
+  props.snapshot.workspace.assets = [{id: 'art', name: 'existing_astronaut-reference.png', url: '/art.png'}];
+  const html = renderToStaticMarkup(React.createElement(ArtworkPanel, props));
+  assert.doesNotMatch(html, /<h2[^>]*>Artwork<\/h2>|<details/);
+  assert.match(html, /type="file"[^>]*aria-label="Import artwork"/);
+  assert.match(html, /id="import-existing"/);
+  assert.match(html, /aria-label="Preview existing_astronaut-reference.png"/);
+  assert.match(html, /aria-label="Add existing_astronaut-reference.png to study"/);
+  assert.match(html, />existing astronaut reference<\/strong>/);
+});
+
+test('selected artwork uses its own compact preview and retains full title', () => {
+  const props = fixture();
+  props.snapshot.study = {...props.snapshot.study, tattoos: [{id: 'one', assetId: 'art', name: 'Astronaut reference', width: 7, rotation: 0, opacity: .9, region: 'leftUpperArm', visible: true, locked: false}], selectedIds: ['one']};
+  props.snapshot.workspace.assets = [{id: 'art', name: 'Astronaut reference', url: '/api/assets/art'}];
+  const html = renderToStaticMarkup(React.createElement(CompositionPanel, props));
+  assert.match(html, /class="selection-preview"[^>]*src="\/api\/assets\/art"/);
+  assert.match(html, /id="selection-title"[^>]*title="Astronaut reference"/);
+  assert.ok(html.indexOf('class="selection-preview"') < html.indexOf('id="region"'));
+});
+
+test('body source details are available without preceding the main controls with metadata', () => {
+  const html = renderToStaticMarkup(React.createElement(BodyPanel, fixture()));
+  const disclosure = /<details\b[^>]*class="[^"]*body-source-details[^"]*"[^>]*>/.exec(html)?.[0];
+  assert.ok(disclosure, 'Body source metadata uses a disclosure');
+  assert.doesNotMatch(disclosure, /\bopen(?:=|\s|>)/, 'Metadata starts collapsed');
+  assert.match(html, /id="body-model"/);
+  assert.match(html, /id="stature"/);
+});
+
+
+test('image export stays distinct from automatic study saving', () => {
+  const props = withUI(fixture(), {ready: true, saveLabel: 'Saved to workspace', retry: {hidden: true, text: 'Retry save'}});
+  const html = renderToStaticMarkup(React.createElement(Header, props));
+  assert.match(html, /id="save-image"[^>]*aria-label="Export image"/);
+  assert.match(html, /class="save-label-compact" aria-hidden="true">Export</);
+  assert.doesNotMatch(html, /Save reference/);
 });

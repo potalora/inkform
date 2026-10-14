@@ -1,8 +1,8 @@
 import React, {memo, useEffect, useState} from 'react';
 import {editable, selection} from '../model.js';
 import {REGIONS} from '../regions.js';
-import {Eye, EyeOff, LockKeyhole, LockKeyholeOpen, ArrowUp, ArrowDown} from 'lucide-react';
-import {Button, Field, RangeControl, closeMenuThen} from './primitives.jsx';
+import {Eye, EyeOff, LockKeyhole, LockKeyholeOpen, ArrowUp, ArrowDown, Crosshair} from 'lucide-react';
+import {Button, Field, Select, RangeControl, closeMenuThen} from './primitives.jsx';
 
 function CompositionPanelView({app, snapshot}) {
   const {workspace, study, ui} = snapshot;
@@ -11,6 +11,7 @@ function CompositionPanelView({app, snapshot}) {
   const hasTattoos = study.tattoos.length > 0;
   const items = editable(study);
   const tattoo = items[0] || chosen[0];
+  const selectedAsset = chosen.length === 1 ? workspace.assets.find(asset => asset.id === chosen[0].assetId) : null;
   const disabled = ui.blocked || !items.length;
   const hasLocked = chosen.some(layer => layer.locked);
   const name = chosen.length === 1 ? chosen[0].name : chosen.length ? 'Multiple tattoos' : '';
@@ -22,7 +23,7 @@ function CompositionPanelView({app, snapshot}) {
   const summary = chosen.length === 1 && hasLocked
     ? 'Locked in place. Unlock to adjust this tattoo.'
     : chosen.length === 1
-    ? `${chosen[0].existing ? 'Existing tattoo' : 'New tattoo'} · approximate placement`
+    ? `${chosen[0].existing ? 'Existing tattoo' : 'New tattoo'}`
     : chosen.length
     ? `${chosen.length} selected · ${items.length} editable · ${chosen.length - items.length} locked${hasLocked ? '. Unlock to adjust locked tattoos.' : items.length > 1 ? '. Changes apply as a group.' : ''}`
     : hasTattoos ? 'Select a tattoo below to adjust its placement.' : 'Add artwork, choose a body area, then adjust width.';
@@ -40,29 +41,27 @@ function CompositionPanelView({app, snapshot}) {
   }
 
   return <section data-surface-content="composition">
-    <div className="composition-heading"><h2>Composition</h2>{!hasTattoos && <p>Add artwork to place a tattoo.</p>}
-      {!hasTattoos && <Button variant="primary" id="browse-art" disabled={ui.blocked} onClick={() => actions.showSurface('artwork')}>Add artwork</Button>}
-    </div>
+    {!hasTattoos && <div className="composition-heading"><h2>Composition</h2><p>Add artwork to place a tattoo.</p>
+      <Button variant="primary" id="browse-art" disabled={ui.blocked} onClick={() => actions.showSurface('artwork')}>Add artwork</Button>
+    </div>}
     <div data-panel-content="tattoo">
       <div className="panel-intro">
-        <h2 id="selection-title">{title}</h2>
+        {selectedAsset && <img className="selection-preview" src={selectedAsset.url} width="48" height="56" alt="" />}
+        <div className="selection-description"><h2 id="selection-title" title={title}>{title}</h2>
         <p id="selection-summary">{summary}</p>
         {hasLocked && !items.length && chosen.length === 1 && <p className="locked-size">Width: {chosen[0].width.toFixed(1)} cm (approx.)</p>}
+        </div>
+        <Button variant="ghost" className="selection-lock" id="lock-selection" aria-label="Lock in place" title="Lock in place" hidden={!items.length} disabled={disabled} onClick={() => actions.lockSelection(true)}><LockKeyhole size={18} aria-hidden="true" /></Button>
       </div>
       <Button variant="secondary" id="unlock-selection" hidden={!hasLocked} disabled={ui.blocked || !hasLocked} onClick={() => actions.lockSelection(false)}>Unlock to adjust</Button>
       <div id="tattoo-controls" hidden={!items.length}>
-        <Field label="Body area">
-          <select id="region" value={tattoo?.region || 'leftUpperArm'} disabled={disabled} onChange={event => actions.setRegion(event.target.value)}>
-            {REGIONS.map(region => <option key={region.id} value={region.id}>{region.label}</option>)}
-            <option value="custom">Custom · tap on body</option>
-          </select>
+        <div className="placement-row"><Field label="Body area">
+          <Select id="region" aria-label="Body area" value={tattoo?.region || 'leftUpperArm'} disabled={disabled} onValueChange={actions.setRegion}
+            items={[...REGIONS.map(region => ({value: region.id, label: region.label})), {value: 'custom', label: 'Custom · tap on body'}]} />
         </Field>
-        <Button id="place-on-body" className="secondary placement-action" disabled={disabled} aria-pressed={ui.placing} onClick={actions.togglePlace}>Place on body</Button>
+        <Button id="place-on-body" className="secondary placement-action" aria-label="Place on body" title="Place on body" disabled={disabled} aria-pressed={ui.placing} onClick={actions.togglePlace}><Crosshair size={19} aria-hidden="true" /></Button></div>
         {range('width', 'Width (approx.)', .5, 40, .1)}
         {range('rotation', 'Rotation', -180, 180, 1)}
-        <div className="small-actions protection-actions">
-          <Button variant="ghost" id="lock-selection" hidden={!items.length} disabled={disabled} onClick={() => actions.lockSelection(true)}>Lock in place</Button>
-        </div>
         <details className="control-details advanced-tattoo">
           <summary>More adjustments</summary>
           <Field label="Tattoo name">
@@ -86,10 +85,10 @@ function CompositionPanelView({app, snapshot}) {
         </details>
       </div>
     </div>
-    <div className="editor-divider" />
-    <div data-left-content="layers">
+    <details className="control-details study-layers" data-left-content="layers">
+      <summary>Tattoos in this study <span>{study.tattoos.length}</span></summary>
       <div className="section-heading">
-        <h3>Tattoos in this study <span>{study.tattoos.length}</span></h3>
+        <h3>Layer actions</h3>
         <details className="layer-menu">
           <summary>Actions</summary>
           <div className="layer-menu-content glass-surface">
@@ -130,8 +129,8 @@ function CompositionPanelView({app, snapshot}) {
           </div>;
         }) : <div className="empty">No tattoos added.<br /><br />Add artwork, choose a body area, then adjust its approximate size.</div>}
       </div>
-      {hasTattoos && <Button variant="primary" id="browse-art" className="primary" disabled={ui.blocked} onClick={() => actions.showSurface('artwork')}>Add artwork</Button>}
-    </div>
+    </details>
+    {hasTattoos && <Button variant="secondary" id="browse-art" disabled={ui.blocked} onClick={() => actions.showSurface('artwork')}>Add artwork</Button>}
   </section>;
 }
 

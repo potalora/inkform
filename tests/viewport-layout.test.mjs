@@ -15,18 +15,48 @@ const layouts=[
  ...[506,780,304].map(top=>({width:390,height:844,header:{bottom:64},study:{bottom:134},panel:{top},panelSide:'right',dock:{top:top-66},compact:true})),
 ];
 function cameraFor(layout,name='front'){
- const camera=new THREE.PerspectiveCamera(34,1,.01,20),view=cameraView(name);
+ const camera=new THREE.PerspectiveCamera(34,1,.01,20),view=cameraView(name,{compact:layout.compact});
  camera.position.fromArray(view.position);camera.lookAt(...view.target);
  applyCameraViewport(camera,{...layout,clear:clearViewport(layout)});camera.updateMatrixWorld();return camera;
 }
-test('whole-body views clear floating chrome at desktop, short landscape and every sheet height',()=>{
- for(const layout of layouts)for(const name of ['body','front','side','back']){
+test('Front, Side and Back whole-body views clear floating chrome at desktop, short landscape and every sheet height',()=>{
+ for(const layout of layouts)for(const name of ['front','side','back']){
   const clear=clearViewport(layout),camera=cameraFor(layout,name);
   for(const x of [-.45,.45])for(const y of [0,1.753])for(const z of [-.18,.18]){
    const p=new THREE.Vector3(x,y,z).project(camera),px=(p.x+1)*layout.width/2,py=(1-p.y)*layout.height/2;
    assert.ok(px>=clear.x&&px<=clear.x+clear.width,`${name} at ${layout.width}x${layout.height} stays beside panel: ${px}`);
    assert.ok(py>=clear.y&&py<=clear.y+clear.height,`${name} at ${layout.width}x${layout.height} clears header/dock: ${py}`);
   }
+ }
+});
+test('desktop Orbit working view keeps head and knees clear while enlarging the subject within floating chrome',()=>{
+ for(const layout of layouts.filter(layout=>!layout.compact)){
+  const clear=clearViewport(layout),camera=cameraFor(layout,'body'),ys=[];
+  for(const x of [-.45,.45])for(const y of [.55,1.753])for(const z of [-.18,.18]){
+   const p=new THREE.Vector3(x,y,z).project(camera),px=(p.x+1)*layout.width/2,py=(1-p.y)*layout.height/2;
+   assert.ok(px>=clear.x&&px<=clear.x+clear.width,`Orbit at ${layout.width}x${layout.height} keeps the upper body beside controls: ${px}`);
+   assert.ok(py>=clear.y&&py<=clear.y+clear.height,`Orbit at ${layout.width}x${layout.height} keeps head and knees clear: ${py}`);
+   ys.push(py);
+  }
+  if(clear.width/clear.height>=.58){
+   assert.ok((Math.max(...ys)-Math.min(...ys))/clear.height>.7,'Orbit makes the head-to-knee working region materially prominent');
+  }
+ }
+});
+test('compact Orbit fills the phone with head-to-waist while preserving head and chest',()=>{
+ for(const [width,height,panelTop,dockTop] of [[390,912,548,478],[390,844,506,436],[320,568,338,268]]){
+ const layout={width,height,header:{bottom:66},panel:{top:panelTop},panelSide:'right',dock:{top:dockTop},compact:true};
+ const clear=clearViewport(layout),camera=cameraFor(layout,'body');
+ const project=(x,y,z)=>{const p=new THREE.Vector3(x,y,z).project(camera);return {x:(p.x+1)*width/2,y:(1-p.y)*height/2};};
+ for(const [x,y,z] of [[-.10,1.753,.12],[.10,1.753,.12],[-.30,1.4,.12],[.30,1.4,.12],[-.18,1.2,.12],[.18,1.2,.12]]){
+  const point=project(x,y,z);
+  assert.ok(point.x>=clear.x&&point.x<=clear.x+clear.width,`${width}x${height}: head and chest stay beside controls`);
+  assert.ok(point.y>=clear.y&&point.y<=clear.y+clear.height,`${width}x${height}: head and chest remain above the camera dock`);
+ }
+ const head=project(0,1.753,.12),waist=project(0,1.15,.12),knee=project(0,.55,.12);
+ assert.ok(waist.y-head.y>clear.height*.75,`${width}x${height}: head-to-waist fills most of the working region`);
+ assert.ok(waist.y>=clear.y+clear.height*.8,`${width}x${height}: waist approaches the dock rather than fitting the groin above it`);
+ assert.ok(knee.y>layout.panel.top,`${width}x${height}: lower body may continue behind translucent controls`);
  }
 });
 test('off-axis projection keeps target centered in clear area and ray picking agrees',()=>{

@@ -13,6 +13,7 @@ import {createRenderScheduler} from '../studio/render-scheduler.js';
 import {createAdaptiveQuality,choosePixelRatio} from '../studio/render-quality.js';
 import {applyCameraViewport} from '../studio/viewport-layout.js';
 import {cameraView} from '../studio/camera-framing.js';
+import {createCameraMotion} from '../studio/camera-motion.js';
 import {handleCameraKey} from '../studio/camera-keyboard.js';
 import {constrainCameraToFloor,restoreCameraPose,stopCameraMotion} from '../studio/camera-floor.js';
 const cameraFloorBindings={constrainCameraToFloor,restoreCameraPose,stopCameraMotion,floorCollision:false};
@@ -45,7 +46,7 @@ test('identical settled layout leaves an active preview and idle rendering untou
  assert.equal(h.context.requests,requests,'duplicate observer notifications must not schedule frames');
  assert.equal(h.applied.length,1);
 });
-function previewHarness({flush=async()=>{}}={}){const phases=[],starts=[];let requests=0;const context=vm.createContext({inkTask:null,previewSequence:0,previewPending:false,previewStill:false,previewTask:null,disposed:false,preview:{active:false,cancel:async()=>{},start(args){const gate=deferred();starts.push({gate,args});return gate.promise;}},scheduler:{flush,request(){requests++;}},options:{onPreview:status=>phases.push(status)},renderer:{},scene:{},camera:{},active:{mesh:{}},albedoSkin:{},roughnessSkin:{},decals:new Map(),gallery:{raw:{}},console:{error(){}}});vm.runInContext(`${sceneFunction('cancelPreview')}\n${sceneFunction('requestRender')}\n${sceneFunction('raytrace',true)}`,context);return {context,phases,starts,get requests(){return requests;}};}
+function previewHarness({flush=async()=>{}}={}){const phases=[],starts=[];let requests=0;const context=vm.createContext({cameraMotion:{finish(){}},inkTask:null,previewSequence:0,previewPending:false,previewStill:false,previewTask:null,disposed:false,preview:{active:false,cancel:async()=>{},start(args){const gate=deferred();starts.push({gate,args});return gate.promise;}},scheduler:{flush,request(){requests++;}},options:{onPreview:status=>phases.push(status)},renderer:{},scene:{},camera:{},active:{mesh:{}},albedoSkin:{},roughnessSkin:{},decals:new Map(),gallery:{raw:{}},console:{error(){}}});vm.runInContext(`${sceneFunction('cancelPreview')}\n${sceneFunction('requestRender')}\n${sceneFunction('raytrace',true)}`,context);return {context,phases,starts,get requests(){return requests;}};}
 test('real edit cancellation during a pending frame flush prevents obsolete preview work from starting',async()=>{const gate=deferred(),h=previewHarness({flush:()=>gate.promise}),trace=h.context.raytrace();assert.equal(h.context.previewPending,true);assert.equal(h.phases.at(-1).phase,'loading');await tick();h.context.requestRender();gate.resolve();await trace;assert.equal(h.requests,1);assert.equal(h.starts.length,0);assert.equal(h.context.previewPending,false);assert.equal(h.context.previewStill,false);assert.equal(h.phases.at(-1).phase,'idle');});
 test('overlapping preview intents waiting for the same flush start only the newest intent',async()=>{const gate=deferred(),h=previewHarness({flush:()=>gate.promise}),first=h.context.raytrace(),second=h.context.raytrace();await tick();gate.resolve();await tick();assert.equal(h.starts.length,1);h.starts[0].gate.resolve({samples:20});await Promise.all([first,second]);assert.equal(h.phases.filter(s=>s.phase==='complete').length,1);assert.equal(h.phases.at(-1).samples,20);assert.equal(h.context.previewStill,true);});
 test('obsolete preview progress and completion cannot clear or replace the newer task',async()=>{const h=previewHarness(),first=h.context.raytrace();await tick();const second=h.context.raytrace();await tick();assert.equal(h.starts.length,2);const phases=h.phases.length;h.starts[0].args.onProgress({phase:'rendering',samples:4});assert.equal(h.phases.length,phases);h.starts[0].gate.resolve({samples:10});await first;assert.equal(h.context.previewTask,h.starts[1].gate.promise);assert.equal(h.context.previewStill,false);assert.equal(h.phases.filter(s=>s.phase==='complete').length,0);h.starts[1].gate.resolve({samples:30});await second;assert.equal(h.context.previewTask,null);assert.equal(h.phases.at(-1).samples,30);assert.equal(h.context.previewStill,true);});
@@ -58,20 +59,24 @@ test('actual snapshot waits for an active trace and captures its completed canva
 // Load the actual vendored controls with only its browser import-map dependency resolved for Node.
 const orbitSource=(await readFile(new URL('../studio/vendor/OrbitControls.js',import.meta.url),'utf8')).replace("from 'three'",`from '${new URL('../studio/vendor/three.core.js',import.meta.url).href}'`);
 const {OrbitControls}=await import('data:text/javascript;base64,'+Buffer.from(orbitSource).toString('base64'));
-function sceneCameraHarness(t){
+function sceneCameraHarness(t,{animated=false}={}){
  const documentRoot={addEventListener(){},removeEventListener(){}},element={style:{},clientWidth:1200,clientHeight:800,addEventListener(){},removeEventListener(){},getRootNode:()=>documentRoot,ownerDocument:documentRoot},camera=new THREE.PerspectiveCamera(34,1,.01,20),controls=new OrbitControls(camera,element);
  Object.assign(controls,{enableDamping:true,dampingFactor:.09,minDistance:.22,maxDistance:4.5,maxPolarAngle:Math.PI*.91});let draws=0,cancellations=0;
- const timers=new Map();let timerId=0;
+ const timers=new Map(),frames=new Map();let timerId=0,frameId=0,time=0;
  const context=vm.createContext({...cameraFloorBindings,lightingDirty:false,requestAnimationFrame:fn=>setImmediate(fn),inkTask:null,THREE,lighting:'studio',gallery:{},camera,controls,updatingControls:false,preview:null,disposed:false,document:{hidden:false},host:{dataset:{},clientWidth:1200,clientHeight:800},frameCount:0,lastFrameTime:0,adaptive:createAdaptiveQuality(),performance,renderer:{render(){draws++;if(draws>300)throw Error('Controls created an unbounded render loop');}},scene:{},stats(){},requestRender(){cancellations++;context.scheduler.request();},clearTimeout(id){timers.delete(id);},setTimeout(fn){timers.set(++timerId,fn);return timerId;},options:{},cameraTimer:null,cameraView,state:BODY_DEFAULTS});
  const start=source.indexOf('async draw(){'),end=source.indexOf('},async wait(){',start);assert.ok(start>=0&&end>start);vm.runInContext(source.slice(start,end+1).replace('async draw(','async function draw('),context);
+ context.cameraMotion=createCameraMotion({readPose:()=>({position:camera.position.toArray(),target:controls.target.toArray()}),applyPose:pose=>{restoreCameraPose(camera,controls,pose);context.requestRender();},
+  reducedMotion:!animated,now:()=>time,requestFrame(fn){frames.set(++frameId,fn);return frameId;},cancelFrame(id){frames.delete(id);}});
  context.listen=(target,event,handler)=>target.addEventListener(event,handler);
  const registration=source.slice(source.indexOf("listen(controls,'change'"),source.indexOf('\n',source.indexOf("listen(controls,'change'")));vm.runInContext(registration,context);
  const viewStart=source.indexOf('function view('),viewEnd=source.indexOf("\n listen(renderer.domElement,'pointerdown'",viewStart);
  assert.ok(viewStart>=0&&viewEnd>viewStart);vm.runInContext(source.slice(viewStart,viewEnd),context);
  const scheduler=createRenderScheduler({draw:()=>context.draw(),requestFrame:fn=>setImmediate(fn),cancelFrame:clearImmediate});context.scheduler=scheduler;
- t.after(()=>{scheduler.dispose();controls.dispose();});
+ t.after(()=>{context.cameraMotion.dispose();scheduler.dispose();controls.dispose();});
  const idle=async()=>{await scheduler.flush();const count=draws;await tick();await tick();assert.equal(draws,count,'settled production draw must not keep scheduling frames');assert.equal(scheduler.getStats().pending,false);};
- return {context,camera,controls,scheduler,idle,get draws(){return draws;},get cancellations(){return cancellations;}};
+ return {context,camera,controls,scheduler,idle,frames,
+  advance(ms){time+=ms;const callbacks=[...frames.values()];frames.clear();for(const callback of callbacks)callback(time);},
+  get draws(){return draws;},get cancellations(){return cancellations;}};
 }
 test('actual scene draw suppresses false controls changes at the minimum radius and drains once settled',async t=>{
  const h=sceneCameraHarness(t);await h.idle();
@@ -90,6 +95,16 @@ test('actual floor collision drains rendering and permits upward reversal and a 
  await h.idle();h.context.view('front');await h.idle();
  const pose=cameraView('front');assert.ok(h.camera.position.distanceTo(new THREE.Vector3(...pose.position))<1e-8);
  assert.ok(h.controls.target.distanceTo(new THREE.Vector3(...pose.target))<1e-8);
+});
+
+test('actual preset motion draws its sampled poses and leaves the real scheduler idle when finished',async t=>{
+ const h=sceneCameraHarness(t,{animated:true});h.context.view('front',{immediate:true});await h.idle();
+ h.context.view('back');const initialDraws=h.draws;
+ for(let i=0;i<20;i++){h.advance(17);await h.idle();}
+ assert.ok(h.draws>=initialDraws+20,'animation samples reach actual raster submissions');
+ assert.ok(h.camera.position.distanceTo(new THREE.Vector3(0,.93,-3.8))<1e-8);
+ assert.equal(h.frames.size,0,'no animation frame remains after completion');
+ assert.equal(h.controls.enableDamping,true);await h.idle();
 });
 
 test('keyboard orbit releases a completed trace through the production controls change path',()=>{
@@ -196,7 +211,7 @@ test('old true clothing and hair flags render a clean mannequin and cannot clip 
 test('refined preview and snapshot use the same clean body and unmasked ink as raster rendering',async()=>{
  const h=cleanBodyHarness();await h.context.update({...BODY_DEFAULTS,bodyModelId:RENDER_FIXTURE_MODEL_ID,body:'male',hair:true,clothing:true},[{id:'ink',assetId:'art',placement:h.anchor,width:30}],[{id:'art',url:'art.png',width:100,height:100}]);
  let traced;
- Object.assign(h.context,{previewSequence:0,previewPending:false,previewStill:false,previewTask:null,renderer:{domElement:{toDataURL:()=> 'data:image/png;base64,clean-trace'}},camera:{},preview:{active:false,cancel:async()=>{},async start(args){traced=args;return {samples:12};}},console:{error(){}}});
+ Object.assign(h.context,{cameraMotion:{finish(){}},previewSequence:0,previewPending:false,previewStill:false,previewTask:null,renderer:{domElement:{toDataURL:()=> 'data:image/png;base64,clean-trace'}},camera:{},preview:{active:false,cancel:async()=>{},async start(args){traced=args;return {samples:12};}},console:{error(){}}});
  vm.runInContext(sceneFunction('raytrace',true),h.context);installSnapshot(h.context);
  await h.context.raytrace();
  assert.equal(traced.scene,h.context.scene);
@@ -274,8 +289,8 @@ test('undo during an in-flight ink edit rebuilds the stable atlas instead of reu
 
 // Execute the complete production factory with real CPU geometry/materials.
 // Only browser event targets, loading, scheduler and GPU ownership are replaced.
-function studioLifecycleHarness({failure}={}){
- const counts={},events=[],timers=new Map();let timerId=0,controls;
+function studioLifecycleHarness({failure,compact=false,reducedMotion=false}={}){
+ const counts={},events=[],timers=new Map(),frames=new Map();let timerId=0,frameId=0,time=0,controls;
  const count=name=>{counts[name]=(counts[name]||0)+1;events.push(name);};
  class Target extends EventTarget{
   constructor(){super();this.style={};this.listeners=new Map();this.attributes=new Map();}
@@ -283,13 +298,14 @@ function studioLifecycleHarness({failure}={}){
   removeEventListener(type,handler){super.removeEventListener(type,handler);this.listeners.get(type)?.delete(handler);}
   setAttribute(name,value){this.attributes.set(name,String(value));}
  }
- const document=new Target(),existingCanvas={id:'previous-engine'};
+ const document=new Target(),motionPreference=new Target(),existingCanvas={id:'previous-engine'};
+ motionPreference.matches=reducedMotion;
  const host={clientWidth:1000,clientHeight:700,dataset:{},children:[existingCanvas],appendChild(canvas){this.children.push(canvas);}};
  const canvas=new Target();canvas.remove=()=>{const index=host.children.indexOf(canvas);if(index>=0)host.children.splice(index,1);count('canvasRemove');};
  class Renderer{
   constructor(){this.domElement=canvas;this.shadowMap={};this.backend={isWebGPUBackend:true,device:{queue:{onSubmittedWorkDone:async()=>count('fence')}}};}
   async init(){if(failure==='renderer')throw Error('renderer failed');}
-  setPixelRatio(){}setClearColor(){}
+  setPixelRatio(){}setClearColor(){}setSize(){}
   dispose(){count('rendererDispose');}
  }
  class Controls extends GPU.EventDispatcher{
@@ -302,9 +318,10 @@ function studioLifecycleHarness({failure}={}){
  }
  function tracked(Base,name){return class extends Base{constructor(...args){super(...args);this.addEventListener('dispose',()=>count(name));}};}
  const gpu={...GPU,WebGPURenderer:Renderer,MeshSSSNodeMaterial:tracked(GPU.MeshSSSNodeMaterial,'skinDispose'),MeshBasicNodeMaterial:tracked(GPU.MeshBasicNodeMaterial,'materialDispose'),PlaneGeometry:tracked(GPU.PlaneGeometry,'floorDispose'),DataTexture:tracked(GPU.DataTexture,'whiteInkDispose')};
- const context=vm.createContext({...cameraFloorBindings,...TSL,THREE:gpu,BODY_DEFAULTS,resolveBodyModel,LEGACY_MODEL_ID,resolveSkinColor,cameraView,handleCameraKey,choosePixelRatio,createAdaptiveQuality,applyCameraViewport,
-  URLSearchParams,location:{search:''},devicePixelRatio:1,performance,document,
-  window:{matchMedia:()=>({matches:false})},
+ const context=vm.createContext({...cameraFloorBindings,...TSL,THREE:gpu,BODY_DEFAULTS,resolveBodyModel,LEGACY_MODEL_ID,resolveSkinColor,cameraView,createCameraMotion,handleCameraKey,choosePixelRatio,createAdaptiveQuality,applyCameraViewport,
+  URLSearchParams,location:{search:''},devicePixelRatio:1,performance:{now:()=>time},document,
+  window:{matchMedia:query=>query.includes('prefers-reduced-motion')?motionPreference:{matches:compact}},
+  requestAnimationFrame(fn){frames.set(++frameId,fn);return frameId;},cancelAnimationFrame(id){frames.delete(id);},
   setTimeout(fn){const id=++timerId;timers.set(id,fn);return id;},clearTimeout(id){timers.delete(id);},
   ResizeObserver:class{observe(){}disconnect(){count('observerDisconnect');}},
   OrbitControls:Controls,createGeometryKernel:async()=>({}),
@@ -324,8 +341,85 @@ function studioLifecycleHarness({failure}={}){
  });
  vm.runInContext(`${sceneFunction('disposeStudioResources')}\n${source.slice(source.indexOf('export async function createStudio')).replace('export async function','async function')}`,context);
  const phases=[],cameras=[];
- return {context,host,canvas,existingCanvas,counts,events,timers,phases,cameras,get controls(){return controls;},create:()=>context.createStudio(host,{initialBody:{...BODY_DEFAULTS,body:'female'},onPreview:value=>phases.push(value),onCamera:value=>cameras.push(value)})};
+ return {context,host,canvas,existingCanvas,counts,events,timers,frames,motionPreference,phases,cameras,get controls(){return controls;},
+  advance(ms){time+=ms;const callbacks=[...frames.values()];frames.clear();for(const callback of callbacks)callback(time);},
+  create:()=>context.createStudio(host,{initialBody:{...BODY_DEFAULTS,body:'female'},onPreview:value=>phases.push(value),onCamera:value=>cameras.push(value)})};
 }
+
+test('actual studio presets move over time but startup and restored cameras stay immediate',async()=>{
+ const h=studioLifecycleHarness(),studio=await h.create(),initial=JSON.parse(JSON.stringify(studio.getCamera()));
+ assert.deepEqual(initial,cameraView('body'),'startup applies Orbit immediately');
+ assert.equal(h.frames.size,0,'startup does not animate');
+ studio.view('back');
+ assert.deepEqual(JSON.parse(JSON.stringify(studio.getCamera())),initial,'a preset starts at the current visible pose');
+ h.advance(170);
+ assert.notDeepEqual(JSON.parse(JSON.stringify(studio.getCamera())),initial,'the preset progresses on animation frames');
+ assert.ok(studio.getCamera().position[0]**2+studio.getCamera().position[2]**2>4,'the arc stays outside the body');
+ const custom={position:[1.4,1.4,2.7],target:[0,1.1,0]};
+ studio.restoreCamera(custom);h.advance(400);
+ assert.deepEqual(JSON.parse(JSON.stringify(studio.getCamera())),custom,'restoring cancels an unfinished preset');
+ assert.equal(h.frames.size,0);await studio.dispose();
+});
+
+test('actual studio canvas pointer, wheel and focused keyboard input interrupt a preset',async()=>{
+ for(const type of ['pointerdown','wheel','keydown']){
+  const h=studioLifecycleHarness(),studio=await h.create();h.context.document.activeElement=h.canvas;
+  studio.view('back');h.advance(100);const visible=JSON.parse(JSON.stringify(studio.getCamera()));
+  const input=new Event(type,{cancelable:true});Object.assign(input,{key:'ArrowLeft',clientX:10,clientY:10});h.canvas.dispatchEvent(input);
+  h.advance(400);assert.deepEqual(JSON.parse(JSON.stringify(studio.getCamera())),visible,`${type} cancels further preset motion`);
+  assert.equal(h.frames.size,0);await studio.dispose();
+ }
+});
+
+test('actual studio follows reduced motion changes and releases its preference listener on dispose',async()=>{
+ const h=studioLifecycleHarness(),studio=await h.create();studio.view('back');h.advance(100);
+ h.motionPreference.matches=true;h.motionPreference.dispatchEvent(Object.assign(new Event('change'),{matches:true}));
+ assert.deepEqual(JSON.parse(JSON.stringify(studio.getCamera())),cameraView('back'));assert.equal(h.frames.size,0);
+ studio.view('front');assert.deepEqual(JSON.parse(JSON.stringify(studio.getCamera())),cameraView('front'));assert.equal(h.frames.size,0);
+ h.motionPreference.matches=false;h.motionPreference.dispatchEvent(Object.assign(new Event('change'),{matches:false}));
+ studio.view('back');assert.equal(h.frames.size,1);
+ const stale=[...h.frames.values()][0],visible=JSON.parse(JSON.stringify(studio.getCamera()));await studio.dispose();stale();h.advance(400);
+ assert.deepEqual(JSON.parse(JSON.stringify(studio.getCamera())),visible);assert.equal(h.frames.size,0);
+ assert.equal(h.motionPreference.listeners.get('change').size,0);
+});
+
+test('actual studio snapshot settles the latest preset before its capture fence',async()=>{
+ const h=studioLifecycleHarness(),studio=await h.create();
+ h.canvas.toDataURL=()=>JSON.stringify(studio.getCamera());
+ studio.view('back');h.advance(100);studio.view('side');
+ assert.deepEqual(JSON.parse(await studio.snapshot()),cameraView('side'));
+ assert.equal(h.frames.size,0);await studio.dispose();
+});
+
+test('ray tracing settles pending camera motion before reserving preview ownership',async()=>{
+ const h=previewHarness(),camera=new THREE.PerspectiveCamera(34,1,.01,20),target=new THREE.Vector3();camera.position.set(.4,1.2,2.8);target.set(0,1.13,0);
+ h.context.camera=camera;
+ h.context.cameraMotion=createCameraMotion({readPose:()=>({position:camera.position.toArray(),target:target.toArray()}),
+  applyPose(pose){camera.position.fromArray(pose.position);target.fromArray(pose.target);h.context.requestRender();},requestFrame:()=>1,cancelFrame(){}});
+ h.context.cameraMotion.start(cameraView('back'));
+ const trace=h.context.raytrace();await tick();
+ assert.equal(h.starts.length,1,'settlement does not cancel the newly reserved trace');
+ assert.ok(h.starts[0].args.camera.position.distanceTo(new THREE.Vector3(0,.93,-3.8))<1e-8);
+ assert.equal(h.context.cameraMotion.active,false);h.starts[0].gate.resolve({samples:1});await trace;
+});
+
+test('actual studio uses compact Orbit only on preset activation and preserves restored poses on resize',async()=>{
+ const h=studioLifecycleHarness({compact:true,reducedMotion:true}),studio=await h.create();
+ const initial=studio.getCamera(),desktop=cameraView('body');
+ assert.ok(initial.position[2]<desktop.position[2]*.65,'new compact studio uses the closer working preset');
+ const custom={position:[1.4,1.4,2.7],target:[0,1.1,0]};
+ studio.restoreCamera(custom);
+ assert.deepEqual(JSON.parse(JSON.stringify(studio.getCamera())),custom,'saved custom camera restores without preset conversion');
+ h.context.window.matchMedia=()=>({matches:false});
+ await studio.refreshLayout();
+ assert.deepEqual(JSON.parse(JSON.stringify(studio.getCamera())),custom,'resize adjusts projection without resetting the restored pose');
+ h.context.window.matchMedia=()=>({matches:true});
+ studio.view('body');
+ assert.ok(studio.getCamera().position[2]<desktop.position[2]*.65,'explicit Orbit tap activates compact preset');
+ studio.view('front');
+ assert.deepEqual(JSON.parse(JSON.stringify(studio.getCamera())),cameraView('front'),'Front remains the full-body preset on phones');
+ await studio.dispose();
+});
 
 test('actual studio disposal returns one promise, detaches only its canvas and stops stale callbacks',async()=>{
  const h=studioLifecycleHarness(),studio=await h.create();

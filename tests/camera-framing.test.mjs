@@ -6,14 +6,14 @@ import {cameraView} from '../studio/camera-framing.js';
 // Canvas bounds exclude the header and desktop pane. Compact layout follows
 // viewport media queries, not canvas width (landscape desktop can be narrow).
 const canvases=[[960,658,false],[390,438,true],[524,328,false],[390,737,true]];
-function projectedBounds(name,width,height,compact=false){
+function projectedBounds(name,width,height,compact=false,verticalBounds=[0,1.753]){
  const view=cameraView(name),camera=new THREE.PerspectiveCamera(34,width/height,.01,20);
  camera.position.fromArray(view.position);camera.lookAt(...view.target);
  camera.zoom=compact?.76:height<600?.8:1;
  camera.setViewOffset(width,height,0,compact?16:Math.min(40,height*.06),width,height);
  camera.updateProjectionMatrix();camera.updateMatrixWorld();
  const points=[];
- for(const x of [-.45,.45])for(const y of [0,1.753])for(const z of [-.18,.18]){
+ for(const x of [-.45,.45])for(const y of verticalBounds)for(const z of [-.18,.18]){
   const p=new THREE.Vector3(x,y,z).project(camera);
   assert.ok(p.z>-1&&p.z<1,'subject stays between clipping planes');
   points.push([(p.x+1)*width/2,(1-p.y)*height/2]);
@@ -21,13 +21,16 @@ function projectedBounds(name,width,height,compact=false){
  return {left:Math.min(...points.map(p=>p[0])),right:Math.max(...points.map(p=>p[0])),top:Math.min(...points.map(p=>p[1])),bottom:Math.max(...points.map(p=>p[1]))};
 }
 
-test('default studio composition contains the standing body inside the actual inset canvas',()=>{
+test('Orbit working view keeps the head and knees visible while making the body prominent',()=>{
  for(const [width,height,compact] of canvases){
-  const bounds=projectedBounds('body',width,height,compact);
+  const bounds=projectedBounds('body',width,height,compact,[.55,1.753]);
   assert.ok(bounds.top>=24,`${width}x${height}: head retains breathing room (${bounds.top})`);
-  assert.ok(bounds.bottom<=height-72,`${width}x${height}: feet retain lower canvas clearance (${bounds.bottom})`);
-  assert.ok(bounds.left>=0&&bounds.right<=width,`${width}x${height}: body clears canvas edges`);
-  if(width===960)assert.ok((bounds.bottom-bounds.top)/height>.65,'desktop body remains prominent');
+  assert.ok(bounds.bottom<=height-24,`${width}x${height}: knees retain lower canvas clearance (${bounds.bottom})`);
+  assert.ok(bounds.left>=0&&bounds.right<=width,`${width}x${height}: upper body clears canvas edges`);
+  if(width===960){
+   const full=projectedBounds('body',width,height,compact);
+   assert.ok((full.bottom-full.top)/height>.95,'working view fills the frame instead of showing a distant whole-body overview');
+  }
  }
 });
 
@@ -36,6 +39,16 @@ test('named whole-body views stay inside desktop and compact canvases',()=>{
   const bounds=projectedBounds(name,width,height,compact);
   assert.ok(bounds.top>=0&&bounds.bottom<=height&&bounds.left>=0&&bounds.right<=width,`${name} fits ${width}x${height}`);
  }
+});
+
+test('compact Orbit frames the upper body more closely without changing whole-body presets',()=>{
+ const wide=cameraView('body'),compact=cameraView('body',{compact:true});
+ const distance=pose=>new THREE.Vector3(...pose.position).distanceTo(new THREE.Vector3(...pose.target));
+ assert.ok(distance(compact)<distance(wide)*.5,'phone Orbit gives the torso a close working view instead of fitting the hips');
+ assert.ok(compact.target[1]>wide.target[1],'phone Orbit aims at the upper torso');
+ for(const name of ['front','side','back'])assert.deepEqual(cameraView(name,{compact:true}),cameraView(name),'whole-body presets do not depend on viewport');
+ const scaled=cameraView('body',{compact:true,stature:175.3*1.1});
+ for(const key of ['position','target'])assert.deepEqual(scaled[key],compact[key].map(value=>value*1.1));
 });
 
 test('camera angles are near eye level, with front, back and side on their correct axes',()=>{
