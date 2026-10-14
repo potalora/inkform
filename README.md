@@ -1,33 +1,45 @@
-# Inkform
+# tattoo you
 
-Inkform is a browser app for trying tattoo placement on a 3D body. Import your own artwork, adjust its position and size, and save a reference image for your artist. The preview is approximate; final placement needs a fitting with your artist.
+A browser app for trying tattoo placement on a 3D body. Import artwork, adjust its position and size, compare arrangements, and export a reference for your artist. The preview is approximate; confirm the final fit on your body.
 
-Try the [public beta](https://inkform-beta.pages.dev/studio/).
+![Tattoo placement in the studio](docs/images/placement.jpg)
 
-This README was created by AI. A human-written version is coming.
-
-## Screenshots
-
-Tattoo placement with an original geometric demo design.
-
-![Tattoo placement and size controls](docs/images/placement.jpg)
-
-Body proportions and the studio view.
-
-![Body reference controls in the studio](docs/images/body-controls.jpg)
+The studio has a reusable artwork library, adjustable body references, named studies, notes, undo/redo, and workspace backups. Existing tattoos can be positioned and locked while you try new additions. Phones use a draggable controls panel.
 
 ## Run locally
 
-Requires **Git** and **Node.js 24 or newer**, including npm. Install and start Inkform with one command:
+Requires Git and Node.js 24 or newer, including npm.
 
 ```sh
-git clone --depth 1 https://github.com/potalora/inkform.git && cd inkform && npm ci && npm run build && npm start
+git clone --depth 1 https://github.com/potalora/tattoo-you.git && cd tattoo-you && npm ci && npm run build && npm start
 ```
 
-Open http://127.0.0.1:8788/studio/ and leave the terminal running. Press Ctrl+C to stop. For later launches, run `npm start` from the `inkform` folder. The server runs locally; a Cloudflare account is not required.
+Open [tattoo you](http://127.0.0.1:8788/studio/) and leave the terminal running. Stop with Ctrl-C. For later launches, run `npm start` from the `tattoo-you` folder. The server runs locally; a Cloudflare account is not required.
 
-Run `npm test` to check the source. UI source is in `studio/ui/`; the geometry kernel source is in `studio/wasm/`.
+Studies and artwork save in the current browser. Different browsers and site addresses have separate workspaces. Download a workspace backup before clearing browser data or moving between devices. Restore replaces the current workspace.
 
-Projects and imported artwork stay in your browser's storage. Clearing browser data removes them. Different browsers and site addresses have separate workspaces. Export a workspace backup to keep a separate copy.
+Import a tightly cropped, transparent PNG or WebP up to 20 MB. Photos of tattoos on skin need preparation outside the app.
 
-The application source uses the [MIT License](LICENSE). Third-party components and assets keep their separate licenses; see [ASSET-NOTICES.md](ASSET-NOTICES.md).
+## Screenshots
+
+Body controls and the phone layout. All screenshots use an original geometric demo design, with no private artwork or studies.
+
+![Body reference controls](docs/images/body-controls.jpg)
+
+<img src="docs/images/mobile.jpg" alt="Phone layout with the draggable controls panel" width="320">
+
+## Development
+
+The interface uses React, Base UI and Motion. Three.js owns the 3D view, with WebGPU and a WebGL fallback. Fonts, artwork and rendering dependencies are served locally.
+
+```sh
+npm run build:ui
+npm test
+npm run build
+```
+
+UI source is in `studio/ui/`; the geometry kernel source is in `studio/wasm/`. Keep the generated `studio/ui-app.js` and `studio/ui-app.css` with source changes. The public build uses the explicit file list in `public/runtime-assets.json`.
+
+See [frontend architecture and interface behavior](docs/frontend.md) and [screenshot provenance](docs/images/README.md). The application source uses the [MIT License](LICENSE). Third-party components and assets retain their own licenses; see [ASSET-NOTICES.md](ASSET-NOTICES.md).
+
+Existing Inkform browser storage names and backup formats are retained.

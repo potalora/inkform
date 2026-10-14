@@ -1,8 +1,8 @@
-# Inkform public beta asset notices
+# tattoo you asset notices
 
-Inkform saves projects and artwork in this browser. The static beta contains no
+tattoo you saves projects and artwork in this browser. The static beta contains no
 private artwork library, sample tattoo artwork, saved workspace, or server API.
-This document lists third-party notices only; it does not relicense Inkform or
+This document lists third-party notices only; it does not relicense tattoo you or
 user-supplied artwork. The independently licensed assets below retain their
 original terms.
 
@@ -73,7 +73,7 @@ The geometry WASM is compiled from the application's AssemblyScript source;
 
 The self-hosted UI bundle includes React, React DOM, Scheduler,
 use-sync-external-store, Base UI, Floating UI, class-variance-authority, clsx, cn,
-Lucide React and Reselect. Compiled CSS includes Tailwind CSS and tw-animate-css.
+Lucide React, Reselect, Motion, Framer Motion, motion-dom, motion-utils and tslib. Compiled CSS includes Tailwind CSS and tw-animate-css.
 Their original copyright/license texts are in `licenses/`, with the pinned
 package versions recorded in `runtime-assets.json`. Adapted shadcn components
 retain their [MIT notice](studio/ui/SHADCN-LICENSE).

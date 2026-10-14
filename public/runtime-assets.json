@@ -26,6 +26,7 @@
         "studio/scene.js",
         "studio/gallery-environment.js",
         "studio/camera-framing.js",
+        "studio/camera-motion.js",
         "studio/camera-keyboard.js",
         "studio/camera-floor.js",
         "studio/surface-client.js",
@@ -495,6 +496,61 @@
       "provenance": "studio/ui/SHADCN-LICENSE; locally adapted shadcn UI components.",
       "files": [
         "studio/ui/SHADCN-LICENSE"
+      ]
+    },
+    {
+      "id": "package-motion",
+      "license": "MIT",
+      "provenance": "motion 14.2.0; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/motion/LICENSE.md",
+          "path": "licenses/motion-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-framer-motion",
+      "license": "MIT",
+      "provenance": "framer-motion 14.2.0; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/framer-motion/LICENSE.md",
+          "path": "licenses/framer-motion-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-motion-dom",
+      "license": "MIT",
+      "provenance": "motion-dom 14.2.0; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/motion-dom/LICENSE.md",
+          "path": "licenses/motion-dom-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-motion-utils",
+      "license": "MIT",
+      "provenance": "motion-utils 14.1.1; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/motion-utils/LICENSE.md",
+          "path": "licenses/motion-utils-LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "id": "package-tslib",
+      "license": "0BSD",
+      "provenance": "tslib 2.8.1; pinned package-lock.json; original package license.",
+      "files": [
+        {
+          "source": "node_modules/tslib/LICENSE.txt",
+          "path": "licenses/tslib-LICENSE.txt"
+        }
       ]
     }
   ]

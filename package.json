@@ -1,7 +1,7 @@
 {
-  "name": "inkform",
+  "name": "tattoo-you",
   "version": "1.0.0",
-  "description": "Inkform browser-based tattoo placement studio",
+  "description": "A browser app for trying tattoo placement on a 3D body",
   "scripts": {
     "build:wasm": "asc studio/wasm/morph.ts --outFile studio/wasm/morph.wasm --runtime stub --exportRuntime --exportStart _start --optimize --noAssert",
     "build:renderer": "node scripts/vendor-three.mjs && node scripts/build-pathtracer.mjs",
@@ -37,7 +37,8 @@
     "cn": "0.4.0",
     "lucide-react": "1.55.0",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "motion": "14.2.0"
   },
   "engines": {
     "node": ">=24"

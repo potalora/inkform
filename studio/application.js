@@ -143,6 +143,11 @@ export function createApplication({
 
   const actions = {
     showSurface,
+    setPanelState(value) {
+      if (!['collapsed', 'normal', 'expanded'].includes(value)) return false;
+      if (ui.panelState !== value) { ui.panelState = value; publishUI(); }
+      return true;
+    },
     togglePanel() {
       ui.panelState = {normal: 'expanded', expanded: 'collapsed', collapsed: 'normal'}[ui.panelState];
       publishUI();
@@ -150,7 +155,7 @@ export function createApplication({
     setArtSearch(value) { ui.artSearch = value; publishUI(); },
     setImportExisting(value) {
       ui.importExisting = value;
-      sayUI(value ? 'Existing tattoos need isolated flat artwork, not a photo on skin. Position them first, then Lock in place to protect them.' : 'New ideas are added directly to this study and remain editable.');
+      publishUI();
     },
     addArtwork: guarded(id => {
       const asset = state.workspace.assets.find(a => a.id === id);

@@ -1,5 +1,6 @@
 import React, {memo, useState} from 'react';
 import {Button} from './primitives.jsx';
+import {Plus, Upload} from 'lucide-react';
 
 function ArtworkPanelView({app, snapshot}) {
   const {workspace, ui} = snapshot;
@@ -16,21 +17,19 @@ function ArtworkPanelView({app, snapshot}) {
 
   return <section data-surface-content="artwork">
     <div data-left-content="library">
-      <div className="library-intro"><h2>Artwork</h2></div>
-      <details className="library-import">
-        <summary aria-label="Import artwork">Import</summary>
-        <label className="check"><input id="import-existing" type="checkbox" checked={!!ui.importExisting} disabled={ui.blocked}
-          onChange={event => actions.setImportExisting(event.target.checked)} /> Import as existing tattoos</label>
+      <div className="artwork-import">
         <label className={`upload${dragging ? ' dragging' : ''}`} id="upload-zone" htmlFor="tattoo-upload"
           onDragOver={event => { event.preventDefault(); if (!ui.blocked) setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={event => { event.preventDefault(); setDragging(false); if (!ui.blocked) actions.uploadFiles(event.dataTransfer.files); }}>
-          <strong>Choose files</strong>
-          <small>Transparent PNG / WebP · up to 20 MB</small>
-          <input id="tattoo-upload" type="file" accept="image/png,image/webp" multiple disabled={ui.blocked} onChange={upload} />
+          <Upload size={17} aria-hidden="true" /><strong>Import artwork</strong>
+          <input id="tattoo-upload" type="file" aria-label="Import artwork" accept="image/png,image/webp" multiple disabled={ui.blocked} onChange={upload} />
         </label>
-        <p className="hint">Imports are added to this study. Use one isolated, tightly cropped design per file; no skin or background.</p>
-      </details>
+        <p className="import-format">Transparent PNG or WebP · up to 20 MB</p>
+        <label className="check"><input id="import-existing" type="checkbox" checked={!!ui.importExisting} disabled={ui.blocked} aria-describedby={ui.importExisting ? 'import-existing-help' : undefined}
+          onChange={event => actions.setImportExisting(event.target.checked)} /> Import as existing tattoos</label>
+        <p id="import-existing-help" className="hint" hidden={!ui.importExisting}>Use a flat design. Position and lock it to match the tattoo already on your skin.</p>
+      </div>
       <div className="library-search">
         <input id="art-search" type="search" placeholder="Find artwork…" aria-label="Search artwork" autoComplete="off"
           value={ui.artSearch || ''} disabled={ui.blocked} onChange={event => actions.setArtSearch(event.target.value)} />
@@ -41,11 +40,11 @@ function ArtworkPanelView({app, snapshot}) {
           <Button variant="ghost" className="preview-art" data-preview={asset.id} aria-label={`Preview ${asset.name}`} disabled={ui.blocked}
             onClick={event => actions.previewArtwork(asset.id, event.currentTarget)}>
             <span className="art-paper"><img src={asset.url} width={Number(asset.width) || 200} height={Number(asset.height) || 200} loading="lazy" decoding="async" alt="" /></span>
-            <strong>{asset.name}</strong>
+            <strong title={asset.name}>{asset.name.replace(/\.(png|webp)$/i, '').replace(/[-_]+/g, ' ')}</strong>
           </Button>
           <div className="art-card-actions">
             <Button variant="ghost" className="add-art" data-add={asset.id} aria-label={`Add ${asset.name} to study`} disabled={ui.blocked}
-              onClick={() => actions.addArtwork(asset.id)}><span aria-hidden="true">+</span></Button>
+              onClick={() => actions.addArtwork(asset.id)}><Plus size={18} aria-hidden="true" /></Button>
           </div>
         </article>)}
         {!assets.length && <p className="empty">{workspace.assets.length ? 'No matching artwork. Clear the search to show all designs.' : 'No artwork imported. Import a transparent PNG or WebP.'}</p>}

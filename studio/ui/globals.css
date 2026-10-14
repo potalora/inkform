@@ -7,7 +7,7 @@
 
 .ui-dialog-backdrop { background:rgb(12 16 16 / .28); backdrop-filter:blur(6px); }
 .ui-dialog {
-  position:fixed; inset:auto; top:50%; left:50%; transform:translate(-50%,-50%);
+  position:fixed; inset:auto; top:50%; left:50%; translate:-50% -50%;
   z-index:51; width:min(520px,calc(100vw - 32px)); max-height:calc(100dvh - 32px);
   overflow:auto; overscroll-behavior:contain; padding:32px; border-radius:18px; color:var(--text);
   outline:none; box-sizing:border-box;
@@ -22,12 +22,12 @@
 .ui-dialog .field { margin-top:24px; }
 .ui-dialog .hint { margin-top:16px; }
 .ui-dialog > .primary { margin-top:24px; }
+.workspace-links { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top:20px; padding-top:12px; border-top:1px solid var(--line); font-size:13px; }
+.workspace-links button { padding-inline:0; font-size:13px; }
 .ui-dialog [data-slot=dialog-description] { color:var(--muted); }
-.ui-dialog[data-starting-style],.ui-dialog[data-ending-style] { opacity:0; transform:translate(-50%,-48%); }
-.ui-dialog { transition:opacity 140ms ease,transform 140ms ease; }
 .ui-dialog input[type=text] { width:100%; }
 .ui-button.ghost { background:transparent; border-color:transparent; }
 .ui-button.destructive { color:var(--danger); }
 .react-surface[hidden] { display:none; }
 @media(max-width:700px) { .ui-dialog { padding:24px; } }
-@media(prefers-reduced-motion:reduce) { .ui-dialog { transition:none; } }
+@media(prefers-reduced-motion:reduce) { .ui-dialog,.ui-dialog-backdrop { transition:none; } }

@@ -133,6 +133,32 @@ test('capacity failure leaves study, history, navigation and placement focus unc
   assert.equal(h.app.hasUnsavedChanges(), false); assert.equal(h.timers.size, 0);
 });
 
+test('import mode changes preserve stage framing, status and study history', async t => {
+  const h = harness(); t.after(() => h.app.dispose()); await h.mount();
+  h.app.actions.showSurface('artwork');
+  h.engines[0].options.onStats({warnings: ['Temporary renderer warning']});
+  h.engines[0].options.onStats({warnings: []});
+  const engine = h.engines[0], before = h.app.getSnapshot(), camera = engine.getCamera();
+  assert.match(before.ui.status, /^Drag to orbit/, 'fixture starts with the unobtrusive stage status');
+  const updates = engine.updates.length, views = [...engine.views], refreshed = engine.refreshed, calls = h.calls.length;
+  for (const existing of [true, false, true, false]) {
+    h.app.actions.setImportExisting(existing);
+    const next = h.app.getSnapshot();
+    assert.equal(next.ui.importExisting, existing, 'the import panel receives the checkbox state');
+    assert.equal(next.ui.status, before.ui.status, 'import guidance must not reveal or resize the stage status');
+    assert.equal(next.ui.surface, before.ui.surface); assert.equal(next.ui.panelState, before.ui.panelState);
+    assert.equal(next.study, before.study); assert.equal(next.workspace, before.workspace);
+    assert.equal(next.ui.canUndo, before.ui.canUndo); assert.equal(next.ui.canRedo, before.ui.canRedo);
+  }
+  await tick();
+  assert.equal(engine.updates.length, updates); assert.deepEqual(engine.views, views);
+  assert.deepEqual(engine.getCamera(), camera); assert.equal(engine.refreshed, refreshed);
+  assert.equal(h.calls.length, calls); assert.equal(h.app.hasUnsavedChanges(), false);
+  engine.options.onStats({warnings: ['Existing renderer warning']});
+  h.app.actions.setImportExisting(true);
+  assert.equal(h.app.getSnapshot().ui.status, 'Existing renderer warning', 'checkbox does not replace an existing warning either');
+});
+
 test('UI-only commands and renderer telemetry reuse the immutable domain snapshot', async t => {
   const h = harness(); t.after(() => h.app.dispose()); await h.mount();
   const before = h.app.getSnapshot(), engine = h.engines[0];
